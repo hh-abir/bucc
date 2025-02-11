@@ -1,3 +1,4 @@
+"use client";
 import { useState, useRef, useEffect } from "react";
 import { X, MessageSquare, Send } from "lucide-react";
 import { motion } from "framer-motion";
@@ -10,6 +11,7 @@ const ChatPopup: React.FC = () => {
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   const toggleChat = () => setIsOpen(!isOpen);
+
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   };
@@ -26,6 +28,7 @@ const ChatPopup: React.FC = () => {
     if (input.value.trim()) {
       setMessages([...messages, { text: input.value, sender: "user" }]);
       input.value = ""; // Clear input
+      // Simulate a bot response after the user sends a message
       setTimeout(() => {
         setMessages((prevMessages) => [
           ...prevMessages,
@@ -54,45 +57,51 @@ const ChatPopup: React.FC = () => {
         >
           <div className="flex items-center justify-between border-b border-gray-700 p-3">
             <h2 className="text-base font-medium">Chat</h2>
-            <div className="flex-1 space-y-2 overflow-y-auto p-3 text-sm">
-              {messages.map((msg, index) => (
-                <div
-                  key={index}
-                  className={`flex ${msg.sender === "user" ? "justify-end" : "justify-start"}`}
-                >
-                  <div
-                    className={`max-w-[75%] rounded-lg px-4 py-2 ${
-                      msg.sender === "user"
-                        ? "bg-blue-600 text-white"
-                        : "bg-gray-800 text-gray-300"
-                    }`}
-                  >
-                    {msg.text}
-                  </div>
-                </div>
-              ))}
-              <div ref={messagesEndRef} />
-            </div>
+            <button onClick={toggleChat} className="hover:text-gray-400">
+              <X size={20} />
+            </button>
+          </div>
 
-            <div className="sticky bottom-0 border-t border-gray-700 bg-gray-900 p-3">
-              <form
-                onSubmit={handleSendMessage}
-                className="flex items-center space-x-2"
+          <div className="flex-1 space-y-2 overflow-y-auto p-3 text-sm">
+            {messages.map((msg, index) => (
+              <div
+                key={index}
+                className={`flex ${
+                  msg.sender === "user" ? "justify-end" : "justify-start"
+                }`}
               >
-                <input
-                  type="text"
-                  name="message"
-                  placeholder="Type a message..."
-                  className="flex-1 rounded-md border border-gray-700 bg-gray-800 px-3 py-2 text-sm text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-                />
-                <button
-                  type="submit"
-                  className="rounded-full bg-blue-600 p-2 text-white transition hover:bg-blue-700"
+                <div
+                  className={`max-w-[75%] rounded-lg px-4 py-2 ${
+                    msg.sender === "user"
+                      ? "bg-blue-600 text-white"
+                      : "bg-gray-800 text-gray-300"
+                  }`}
                 >
-                  <Send size={20} />
-                </button>
-              </form>
-            </div>
+                  {msg.text}
+                </div>
+              </div>
+            ))}
+            <div ref={messagesEndRef} />
+          </div>
+
+          <div className="sticky bottom-0 border-t border-gray-700 bg-gray-900 p-3">
+            <form
+              onSubmit={handleSendMessage}
+              className="flex items-center space-x-2"
+            >
+              <input
+                type="text"
+                name="message"
+                placeholder="Type a message..."
+                className="flex-1 rounded-md border border-gray-700 bg-gray-800 px-3 py-2 text-sm text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+              <button
+                type="submit"
+                className="rounded-full bg-blue-600 p-2 text-white transition hover:bg-blue-700"
+              >
+                <Send size={20} />
+              </button>
+            </form>
           </div>
         </motion.div>
       )}
