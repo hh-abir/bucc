@@ -7,7 +7,12 @@ const ChatBot: React.FC = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [messages, setMessages] = useState<
     { text: string; sender: "bot" | "user" }[]
-  >([{ text: "Welcome! How can I help you?", sender: "bot" }]);
+  >([
+    {
+      text: "Hello! I'm Nebu, your friendly chatbot from the BRAC University Computer Club (BUCC)! 🤖🎉 I'm here to help you explore all the exciting activities, fun engagements, and anything related to our university. Whether it's about our club events, courses, or just some general info, feel free to ask me anything! 😊",
+      sender: "bot",
+    },
+  ]);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   const toggleChat = () => setIsOpen(!isOpen);
