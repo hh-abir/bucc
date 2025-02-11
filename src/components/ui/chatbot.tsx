@@ -32,7 +32,10 @@ const ChatBot: React.FC = () => {
       setTimeout(() => {
         setMessages((prevMessages) => [
           ...prevMessages,
-          { text: "Chatbot is under maintenance.", sender: "bot" },
+          {
+            text: "Oops! Looks like our chatbot is on a little vacation 🏖️. It's getting a fresh update and taking a quick break to recharge. We promise it’ll be back better than ever! 💪✨",
+            sender: "bot",
+          },
         ]);
       }, 500);
     }
