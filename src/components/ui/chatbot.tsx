@@ -1,6 +1,6 @@
 "use client";
 import { useState, useRef, useEffect } from "react";
-import { X, MessageSquare, Send } from "lucide-react";
+import { X, BotMessageSquare, Send } from "lucide-react";
 import { motion } from "framer-motion";
 
 const ChatBot: React.FC = () => {
@@ -53,7 +53,7 @@ const ChatBot: React.FC = () => {
           onClick={toggleChat}
           className="rounded-full bg-gray-800 p-2 text-white shadow-md transition hover:bg-gray-700"
         >
-          <MessageSquare size={20} />
+          <BotMessageSquare size={25} />
         </button>
       ) : (
         <motion.div
@@ -61,10 +61,10 @@ const ChatBot: React.FC = () => {
           animate={{ opacity: 1, y: 0 }}
           exit={{ opacity: 0, y: 50 }}
           transition={{ duration: 0.3 }}
-          className="fixed bottom-0 left-0 right-0 flex max-h-[75vh] flex-col overflow-hidden rounded-t-lg bg-gray-900 text-white shadow-xl sm:bottom-4 sm:left-auto sm:right-4 sm:w-72 sm:rounded-lg"
+          className="fixed bottom-0 left-0 right-0 flex max-h-[75vh] flex-col overflow-hidden rounded-t-lg bg-gray-900 text-white shadow-xl sm:bottom-4 sm:left-auto sm:right-4 sm:w-96 sm:rounded-lg"
         >
           <div className="flex items-center justify-between border-b border-gray-700 p-3">
-            <h2 className="text-base font-medium">Chat</h2>
+            <h2 className="text-base font-medium">Nebu (ChatBot) 🤖</h2>
             <button onClick={toggleChat} className="hover:text-gray-400">
               <X size={20} />
             </button>
