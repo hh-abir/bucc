@@ -3,7 +3,7 @@ import { useState, useRef, useEffect } from "react";
 import { X, MessageSquare, Send } from "lucide-react";
 import { motion } from "framer-motion";
 
-const ChatPopup: React.FC = () => {
+const ChatBot: React.FC = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [messages, setMessages] = useState<
     { text: string; sender: "bot" | "user" }[]
@@ -109,4 +109,4 @@ const ChatPopup: React.FC = () => {
   );
 };
 
-export default ChatPopup;
+export default ChatBot;
