@@ -10,6 +10,22 @@ const ChatPopup: React.FC = () => {
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   const toggleChat = () => setIsOpen(!isOpen);
+  const handleSendMessage = (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    const input = e.currentTarget.elements.namedItem(
+      "message",
+    ) as HTMLInputElement;
+    if (input.value.trim()) {
+      setMessages([...messages, { text: input.value, sender: "user" }]);
+      input.value = ""; // Clear input
+      setTimeout(() => {
+        setMessages((prevMessages) => [
+          ...prevMessages,
+          { text: "Chatbot is under maintenance.", sender: "bot" },
+        ]);
+      }, 500);
+    }
+  };
 
   return (
     <div className="fixed bottom-4 right-4 sm:bottom-6 sm:right-6">
