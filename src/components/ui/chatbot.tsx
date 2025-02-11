@@ -78,6 +78,14 @@ const ChatBot: React.FC = () => {
                   msg.sender === "user" ? "justify-end" : "justify-start"
                 }`}
               >
+                {msg.sender === "bot" && (
+                  <div
+                    className="mr-2 flex h-8 w-8 items-center justify-center rounded-full bg-gradient-to-r from-blue-400 to-purple-600"
+                    // This div is the avatar, add any bot image or leave it as a gradient circle
+                  >
+                    <span className="text-xl text-white">🤖</span>
+                  </div>
+                )}
                 <div
                   className={`max-w-[75%] rounded-lg px-4 py-2 ${
                     msg.sender === "user"
