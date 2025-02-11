@@ -20,7 +20,22 @@ const ChatPopup: React.FC = () => {
         >
           <MessageSquare size={20} />
         </button>
-      ) : null}
+      ) : (
+        <motion.div
+          initial={{ opacity: 0, y: 50 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: 50 }}
+          transition={{ duration: 0.3 }}
+          className="fixed bottom-0 left-0 right-0 flex max-h-[75vh] flex-col overflow-hidden rounded-t-lg bg-gray-900 text-white shadow-xl sm:bottom-4 sm:left-auto sm:right-4 sm:w-72 sm:rounded-lg"
+        >
+          <div className="flex items-center justify-between border-b border-gray-700 p-3">
+            <h2 className="text-base font-medium">Chat</h2>
+            <button onClick={toggleChat} className="hover:text-gray-400">
+              <X size={20} />
+            </button>
+          </div>
+        </motion.div>
+      )}
     </div>
   );
 };
