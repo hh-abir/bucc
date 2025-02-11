@@ -2,21 +2,16 @@
 import { useState, useRef, useEffect } from "react";
 import { X, BotMessageSquare, Send } from "lucide-react";
 import { motion } from "framer-motion";
-
+import botIcon from "/public/images/bot.png";
 import { useChat } from "@ai-sdk/react";
+import Image from "next/image";
 
 const ChatBot: React.FC = () => {
   const [isOpen, setIsOpen] = useState(false);
-  const { messages, input, handleInputChange, handleSubmit } = useChat();
+  const { messages, input, handleInputChange, handleSubmit } = useChat({
+    maxSteps: 5,
+  });
 
-  // const [messages, setMessages] = useState<
-  //   { text: string; sender: "bot" | "user" }[]
-  // >([
-  //   {
-  //     text: "Hello! I'm Nebu, your friendly chatbot from the BRAC University Computer Club (BUCC)! 🤖🎉 I'm here to help you explore all the exciting activities, fun engagements, and anything related to our university. Whether it's about our club events, courses, or just some general info, feel free to ask me anything! 😊",
-  //     sender: "bot",
-  //   },
-  // ]);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   const toggleChat = () => setIsOpen(!isOpen);
@@ -28,27 +23,6 @@ const ChatBot: React.FC = () => {
   useEffect(() => {
     scrollToBottom();
   }, [messages]);
-
-  // const handleSendMessage = (e: React.FormEvent<HTMLFormElement>) => {
-  //   e.preventDefault();
-  //   const input = e.currentTarget.elements.namedItem(
-  //     "message",
-  //   ) as HTMLInputElement;
-  //   if (input.value.trim()) {
-  //     setMessages([...messages, { text: input.value, sender: "user" }]);
-  //     input.value = "";
-
-  //     setTimeout(() => {
-  //       setMessages((prevMessages) => [
-  //         ...prevMessages,
-  //         {
-  //           text: "Oops! Looks like our chatbot is on a little vacation 🏖️. It's getting a fresh update and taking a quick break to recharge. We promise it’ll be back better than ever! 💪✨",
-  //           sender: "bot",
-  //         },
-  //       ]);
-  //     }, 500);
-  //   }
-  // };
 
   return (
     <div className="fixed bottom-4 right-4 sm:bottom-6 sm:right-6">
@@ -83,7 +57,14 @@ const ChatBot: React.FC = () => {
                 }`}
               >
                 {msg.role === "assistant" && (
-                  <div className="mr-2 flex h-8 w-8 items-center justify-center rounded-full bg-gradient-to-r from-yellow-400 via-orange-500 to-yellow-600"></div>
+                  <Image
+                    src={botIcon}
+                    width={10}
+                    height={10}
+                    alt={"Icon"}
+                    className="mr-2 h-10 w-10 rounded-full object-cover"
+                    unoptimized={true}
+                  />
                 )}
                 <div
                   className={`max-w-[75%] rounded-lg px-4 py-2 ${
