@@ -27,8 +27,8 @@ const ChatBot: React.FC = () => {
     ) as HTMLInputElement;
     if (input.value.trim()) {
       setMessages([...messages, { text: input.value, sender: "user" }]);
-      input.value = ""; // Clear input
-      // Simulate a bot response after the user sends a message
+      input.value = "";
+
       setTimeout(() => {
         setMessages((prevMessages) => [
           ...prevMessages,
