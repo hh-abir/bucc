@@ -10,6 +10,14 @@ const ChatBot: React.FC = () => {
   const [isOpen, setIsOpen] = useState(false);
   const { messages, input, handleInputChange, handleSubmit } = useChat({
     maxSteps: 5,
+    initialMessages: [
+      {
+        role: "assistant",
+        id: "1",
+        content:
+          "Hey there! I’m Nebu, your go-to chatbot from the BRAC University Computer Club (BUCC)! 🤖✨ Got questions? I’ve got answers! Whether it’s about our club’s awesome events, juicy campus updates, or just random BUCC fun facts, hit me up! I’m here to make your life easier and a little more fun. 😎🎉 Ask away! 🚀",
+      },
+    ],
   });
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -86,8 +94,9 @@ const ChatBot: React.FC = () => {
               className="flex items-center space-x-2"
             >
               <input
+                autoComplete="off"
                 type="text"
-                name="message"
+                name="input-message"
                 value={input}
                 placeholder="Type a message..."
                 onChange={handleInputChange}
