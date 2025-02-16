@@ -1,14 +1,24 @@
 "use client";
 import { useState, useRef, useEffect } from "react";
-import { X, BotMessageSquare, Send } from "lucide-react";
+import { X, CircleStopIcon, BotMessageSquare, Send } from "lucide-react";
 import { motion } from "framer-motion";
 import botIcon from "/public/images/bot.png";
 import { useChat } from "@ai-sdk/react";
 import Image from "next/image";
+import { Spinner } from "./spinner";
 
 const ChatBot: React.FC = () => {
   const [isOpen, setIsOpen] = useState(false);
-  const { messages, input, handleInputChange, handleSubmit } = useChat({
+  const {
+    messages,
+    input,
+    handleInputChange,
+    handleSubmit,
+    error,
+    isLoading,
+    reload,
+    stop,
+  } = useChat({
     maxSteps: 5,
     initialMessages: [
       {
@@ -87,6 +97,30 @@ const ChatBot: React.FC = () => {
             ))}
             <div ref={messagesEndRef} />
           </div>
+          {isLoading && (
+            <div className="flex items-center space-x-2">
+              <Spinner />
+              <button
+                type="button"
+                onClick={() => stop()}
+                className="text-red-500 hover:text-red-700"
+              >
+                <CircleStopIcon size={20} />
+              </button>
+            </div>
+          )}
+          {error && (
+            <div className="flex items-center justify-center space-x-2 text-sm text-red-500">
+              <span>An error occurred.</span>
+              <button
+                type="button"
+                onClick={() => reload()}
+                className="text-sm font-medium underline hover:text-red-700"
+              >
+                Retry
+              </button>
+            </div>
+          )}
 
           <div className="sticky bottom-0 border-t border-gray-700 bg-gray-900 p-3">
             <form
@@ -100,10 +134,13 @@ const ChatBot: React.FC = () => {
                 value={input}
                 placeholder="Type a message..."
                 onChange={handleInputChange}
+                autoFocus={true}
+                disabled={isLoading ?? true}
                 className="flex-1 rounded-md border border-gray-700 bg-gray-800 px-3 py-2 text-sm text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
               <button
                 type="submit"
+                disabled={isLoading}
                 className="rounded-full bg-blue-600 p-2 text-white transition hover:bg-blue-700"
               >
                 <Send size={20} />
