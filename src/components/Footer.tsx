@@ -136,10 +136,10 @@ const Footer = () => {
                   <strong>Contact Number:</strong> +8801756020067
                 </p>
                 <p className="mb-1">
-                  <strong>Email:</strong> info@bracucc.org
+                  <strong>Email:</strong> 
                 </p>
                 <p className="mb-1">
-                  <strong>For Business:</strong> marketing@bracucc.org
+                  <strong>For Business:</strong> marketing.bucc@g.bracu.ac.bd
                 </p>
                 <p className="mb-1">
                   <strong>Address:</strong> Kha 226, Bir Uttam Rafiqul Islam
