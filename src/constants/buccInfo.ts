@@ -1,9 +1,9 @@
 // Intake Info
 const intakeInfo = {
-  intakeName: "Fall 2025",
-  intakeStartDate: "2025-10-15",
-  intakeEndDate: "2025-11-25",
-  isIntakeActive: false,
+  intakeName: "Spring 2026",
+  intakeStartDate: "2026-02-23",
+  intakeEndDate: "2026-03-10",
+  isIntakeActive: true,
   isEvaluationActive: true,
 };
 
