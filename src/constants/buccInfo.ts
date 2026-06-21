@@ -1,7 +1,7 @@
 // Intake Info
 const intakeInfo = {
   intakeName: "Summer 2026",
-  intakeStartDate: "2026-06-23",
+  intakeStartDate: "2026-06-21",
   intakeEndDate: "2026-06-25",
   isIntakeActive: true,
   isEvaluationActive: true,
