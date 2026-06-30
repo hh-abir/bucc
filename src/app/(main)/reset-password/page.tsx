@@ -1,225 +1,124 @@
 "use client";
 
-import SpinnerComponent from "@/components/SpinnerComponent";
-import { Card, CardContent, CardHeader } from "@/components/ui/card";
-import { DialogFooter } from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { LoadingButton } from "@/components/ui/loading-button";
-import PasswordField from "@/components/ui/password-field";
-import {
-  resetPasswordSchema,
-  ResetPasswordSchema,
-} from "@/schemas/resetPasswordSchema";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { useSearchParams } from "next/navigation";
-import { Suspense, useEffect, useState } from "react";
-import { FieldErrors, useForm } from "react-hook-form";
+import { authClient } from "@/lib/auth-client";
+import { useState } from "react";
 import { toast } from "sonner";
+import { Loader2, Mail, ArrowLeft, KeyRound } from "lucide-react";
+import Link from "next/link";
 
-function ResetPassword() {
-  const token = useSearchParams().get("token"); // Get token from URL params
+export default function ForgotPassword() {
+  const [email, setEmail] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isSuccess, setIsSuccess] = useState(false);
 
-  const [loading, setLoading] = useState(false);
-  const [isStrongPassword, setIsStrongPassword] = useState(false);
-  const [newPasswordVisible, setNewPasswordVisible] = useState(false);
-  const [confirmPasswordVisible, setConfirmPasswordVisible] = useState(false);
 
-  // Form configuration for password reset (if token is present)
-  const {
-    register,
-    handleSubmit,
-    watch,
-    formState: { errors, isSubmitting },
-  } = useForm<ResetPasswordSchema>({
-    resolver: zodResolver(resetPasswordSchema),
-    mode: "onChange",
-  });
-
-  const newPassword = watch("newPassword");
-  const confirmPassword = watch("confirmPassword");
-
-  useEffect(() => {
-    if (newPassword && confirmPassword) {
-      setIsStrongPassword(newPassword === confirmPassword);
-    }
-  }, [newPassword, confirmPassword]);
-
-  // Handle the password reset submission
-  async function handleResetSubmit(data: ResetPasswordSchema) {
-    setLoading(true);
+  
+  const onSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsSubmitting(true);
     try {
-      const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/users/resetPassword`,
-        {
-          method: "PATCH",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            token,
-            newPassword: data.newPassword,
-          }),
-        },
-      );
-
-      const result = await response.json();
-
-      if (
-        response.ok &&
-        !result.message?.includes("failed") &&
-        !result.message?.includes("expired") &&
-        !result.message?.includes("same")
-      ) {
-        toast.success(result.message || "Password changed successfully");
+      const { error } = await authClient.requestPasswordReset({
+        email,
+        redirectTo: "/reset-password/confirm",
+      });
+      if (error) {
+        toast.error(error.message || "Failed to send reset link");
       } else {
-        toast.error(result.message || "Failed to change password");
+        toast.success("Password reset link sent to your email!");
+        setIsSuccess(true);
       }
-    } catch (error) {
-      console.error(error);
-      toast.error("An error occurred");
+    } catch (err) {
+      toast.error("An unexpected error occurred");
     } finally {
-      setLoading(false);
+      setIsSubmitting(false);
     }
-  }
+  };
 
-  // If token exists in the URL, show the password reset form
-  if (token) {
+  if (isSuccess) {
     return (
-      <main className="flex min-h-[calc(100vh-140px)] items-center justify-center px-4">
-        <Card className="w-96">
-          <CardHeader className="text-2xl font-semibold">
-            Reset Password
-          </CardHeader>
-          <CardContent className="space-y-2">
-            <form onSubmit={handleSubmit(handleResetSubmit)}>
-              <div className="mb-4">
-                <Label className="mb-4" htmlFor="newPassword">
-                  New Password
-                </Label>
-                <PasswordField
-                  name="newPassword"
-                  register={register}
-                  errors={errors as FieldErrors<ResetPasswordSchema>}
-                  placeholder="New password"
-                  isVisible={newPasswordVisible}
-                  toggleVisibility={() =>
-                    setNewPasswordVisible(!newPasswordVisible)
-                  }
-                />
-              </div>
-              <div>
-                <Label className="mb-4" htmlFor="confirmPassword">
-                  Confirm Password
-                </Label>
-                <PasswordField
-                  name="confirmPassword"
-                  register={register}
-                  errors={errors as FieldErrors<ResetPasswordSchema>}
-                  placeholder="Confirm password"
-                  isVisible={confirmPasswordVisible}
-                  toggleVisibility={() =>
-                    setConfirmPasswordVisible(!confirmPasswordVisible)
-                  }
-                />
-              </div>
-              <LoadingButton
-                className="mt-4"
-                type="submit"
-                disabled={!isStrongPassword || isSubmitting}
-                loading={isSubmitting}
-              >
-                Change Password
-              </LoadingButton>
-            </form>
-          </CardContent>
-          <DialogFooter />
-        </Card>
-      </main>
+      <div className="flex min-h-[calc(100vh-140px)] items-center justify-center px-4">
+        <div className="w-full max-w-md space-y-6 bg-card p-10 rounded-2xl shadow-lg border border-border text-center">
+          <div className="flex justify-center">
+            <div className="h-16 w-16 bg-primary/10 rounded-full flex items-center justify-center text-primary">
+              <Mail className="h-10 w-10" />
+            </div>
+          </div>
+          <div className="space-y-2">
+            <h1 className="text-3xl font-serif font-bold tracking-tight text-foreground">Check your email</h1>
+            <p className="text-muted-foreground">
+              We've sent a password reset link to <span className="text-foreground font-medium">{email}</span>. Please check your inbox and follow the instructions.
+            </p>
+          </div>
+          <div className="pt-4">
+            <Link 
+              href="/login" 
+              className="inline-flex items-center text-sm font-medium text-primary hover:underline underline-offset-4"
+            >
+              <ArrowLeft className="mr-2 h-4 w-4" /> Back to Login
+            </Link>
+          </div>
+        </div>
+      </div>
     );
   }
 
-  // If no token is found, show the email input form to request a reset link
-  return <RequestResetLink loading={loading} setLoading={setLoading} />;
-}
-
-// This component handles requesting a reset link by email
-function RequestResetLink({
-  loading,
-  setLoading,
-}: {
-  loading: boolean;
-  setLoading: (loading: boolean) => void;
-}) {
-  const {
-    register,
-    handleSubmit,
-    formState: { errors },
-  } = useForm<{ email: string }>({
-    mode: "onChange",
-  });
-
-  // Handle the email submission for requesting a reset link
-  async function handleEmailSubmit(data: { email: string }) {
-    setLoading(true);
-    try {
-      const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/users/resetPassword`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({ email: data.email }),
-        },
-      );
-
-      const result = await response.json();
-
-      if (response.ok) {
-        toast.info(result.message || "Reset link sent to your email");
-      } else {
-        toast.error(result.message || "Failed to send reset link");
-      }
-    } catch (error) {
-      toast.error("An unexpected error occurred. Please try again later.");
-    } finally {
-      setLoading(false);
-    }
-  }
-
   return (
-    <main className="flex min-h-[calc(100vh-140px)] items-center justify-center px-4">
-      <Card className="w-96">
-        <CardHeader className="text-2xl font-semibold">
-          Reset Password
-        </CardHeader>
-        <CardContent className="space-y-2">
-          <form onSubmit={handleSubmit(handleEmailSubmit)}>
-            <Label htmlFor="email">G-Suite Email</Label>
-            <Input
-              {...register("email", { required: "Email is required" })}
-              type="email"
-              id="email"
-              placeholder="Email address"
-            />
-            {errors.email && (
-              <p className="text-sm text-red-600">{errors.email.message}</p>
-            )}
-            <LoadingButton type="submit" loading={loading} className="mt-4">
-              Send Reset Link
-            </LoadingButton>
-          </form>
-        </CardContent>
-      </Card>
-    </main>
-  );
-}
+    <div className="flex min-h-[calc(100vh-140px)] items-center justify-center px-4">
+      <div className="w-full max-w-md space-y-8 bg-card p-8 rounded-2xl shadow-lg border border-border">
+        <div className="text-center space-y-2">
+          <div className="flex justify-center mb-4">
+            <div className="h-12 w-12 bg-primary/10 rounded-full flex items-center justify-center text-primary">
+              <KeyRound className="h-6 w-6" />
+            </div>
+          </div>
+          <h1 className="text-3xl font-serif font-bold tracking-tight text-foreground">Forgot Password?</h1>
+          <p className="text-muted-foreground text-sm">
+            No worries! Enter your email below and we'll send you a link to reset your password.
+          </p>
+        </div>
 
-export default function ResetPasswordPage() {
-  return (
-    <Suspense fallback={<SpinnerComponent />}>
-      <ResetPassword />
-    </Suspense>
+        <form className="space-y-5" onSubmit={onSubmit}>
+          <div className="space-y-2">
+            <label className="text-sm font-medium text-foreground ml-1" htmlFor="email">Email Address</label>
+            <div className="relative">
+              <input
+                id="email"
+                className="w-full px-4 py-3 border border-border rounded-xl bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
+                placeholder="name@g.bracu.ac.bd"
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                required
+              />
+            </div>
+          </div>
+
+          <div className="pt-4">
+            <button
+              className="w-full bg-primary text-primary-foreground py-3 px-4 rounded-xl font-medium hover:opacity-95 transition-all shadow-md active:scale-[0.98] disabled:opacity-50 flex items-center justify-center gap-2"
+              type="submit"
+              disabled={isSubmitting}
+            >
+              {isSubmitting ? (
+                <>
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                  Sending link...
+                </>
+              ) : (
+                "Send Reset Link"
+              )}
+            </button>
+          </div>
+          <div className="text-center pt-2">
+            <Link 
+              href="/login" 
+              className="inline-flex items-center text-sm font-medium text-muted-foreground hover:text-foreground transition-colors underline-offset-4 hover:underline"
+            >
+              <ArrowLeft className="mr-2 h-4 w-4" /> Back to Login
+            </Link>
+          </div>
+        </form>
+      </div>
+    </div>
   );
 }

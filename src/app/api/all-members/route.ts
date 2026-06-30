@@ -1,8 +1,11 @@
 import departments from "@/constants/departments";
 import designations from "@/constants/designations";
-import { hasAuth } from "@/helpers/hasAuth";
-import MemberInfo from "@/model/MemberInfo";
+import { auth } from "@/auth";
 import { NextResponse } from "next/server";
+import { MongoClient } from "mongodb";
+
+const client = new MongoClient(process.env.MONGODB_URI as string);
+const db = client.db(process.env.MONGODB_DB as string);
 
 const departmentsName = departments.map((department) => department.title);
 const designationsName = designations.map((designation) => designation.title);
@@ -18,10 +21,7 @@ const permittedDesignations = [
 ];
 
 export async function GET() {
-  const { session, isPermitted } = await hasAuth(
-    permittedDesignations,
-    permittedDepartments,
-  );
+  const session = await auth();
 
   if (!session) {
     return NextResponse.json(
@@ -29,34 +29,37 @@ export async function GET() {
       { status: 401 },
     );
   }
-  if (!isPermitted) {
+  
+  const user = session.user as any;
+  const isGB = ["President", "Vice President", "General Secretary", "Treasurer"].includes(user.designation);
+  const isHR = user.buccDepartment === "Human Resources";
+  const isDeptHead = ["Director", "Assistant Director"].includes(user.designation);
+
+  if (!isGB && !(isHR && isDeptHead)) {
     return NextResponse.json({
-      message: `${session?.user.designation}s of ${session?.user.buccDepartment} don't have the permission to view this page.`,
-    });
+      message: `${user.designation}s of ${user.buccDepartment} don't have the permission to view this page.`,
+    }, { status: 403 });
   }
 
   try {
-    const users = await MemberInfo.find({
-      studentId: { $ne: "00000000" },
+    const usersCollection = db.collection("user");
+    const members = await usersCollection.find({}).toArray();
+
+    members.sort((a: any, b: any) => {
+      const deptA = a.buccDepartment || "";
+      const deptB = b.buccDepartment || "";
+      const desA = a.designation || "";
+      const desB = b.designation || "";
+
+      const departmentComparison = departmentsName.indexOf(deptA) - departmentsName.indexOf(deptB);
+      if (departmentComparison !== 0) return departmentComparison;
+
+      return designationsName.indexOf(desA) - designationsName.indexOf(desB);
     });
 
-    users.sort((a, b) => {
-      const departmentComparison =
-        departmentsName.indexOf(a.buccDepartment) -
-        departmentsName.indexOf(b.buccDepartment);
-
-      if (departmentComparison !== 0) {
-        return departmentComparison;
-      }
-
-      return (
-        designationsName.indexOf(a.designation) -
-        designationsName.indexOf(b.designation)
-      );
-    });
-
-    return NextResponse.json({ user: users });
-  } catch (error) {
-    return NextResponse.json({ error: error });
+    return NextResponse.json({ user: members });
+  } catch (error: any) {
+    console.error("Fetch all members error:", error);
+    return NextResponse.json({ error: error.message }, { status: 500 });
   }
 }

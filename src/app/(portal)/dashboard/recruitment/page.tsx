@@ -5,17 +5,19 @@ import Heading from "@/components/portal/heading";
 import FilterComponent from "@/components/table/FilterComponent";
 import TableComponent from "@/components/table/TableComponent";
 import { Badge } from "@/components/ui/badge";
-import departments from "@/constants/departments";
-import getEvaluations from "@/server/actions";
+import { departmentsInfo } from "@/constants/departments";
 import { useQuery } from "@tanstack/react-query";
 import { useSession } from "next-auth/react";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import EvaluationStats from "./EvaluationStats";
-import recruitmentIds from "@/constants/studentId";
+import { useRouter } from "next/navigation";
 
-const permittedDepartments = [
-  ...departments.map((department) => department.title),
-];
+const getEvaluations = async () => {
+  const res = await fetch(`/api/evaluation/all`);
+  if (!res.ok) throw new Error("Failed to fetch evaluations");
+  return res.json();
+};
+
 const permittedDesignations = [
   "President",
   "Vice President",
@@ -25,166 +27,160 @@ const permittedDesignations = [
   "Assistant Director",
 ];
 
-const columns = [
-  { header: "Student ID", accessorKey: "studentId" },
-  { header: "Name", accessorKey: "name" },
-  {
-    header: "Status",
-    accessorKey: "status",
-    cell: ({ cell }: { cell: any }) => (
-      <Badge variant={cell.getValue().toLowerCase()}>{cell.getValue()}</Badge>
-    ),
-  },
-  { header: "Assigned Department", accessorKey: "buccDepartment" },
-  { header: "Comments", accessorKey: "comment" },
-];
-
-const filterOptions = [
-  {
-    type: "search",
-    name: "search",
-    placeholder: "Search by student ID or name",
-  },
-  {
-    type: "select",
-    name: "status",
-    placeholder: "Filter by status",
-    options: ["Pending", "Accepted", "Rejected"],
-  },
-  {
-    type: "select",
-    name: "department",
-    placeholder: "Filter by department",
-    options: [
-      "Not Assigned",
-      ...departments.slice(2).map((department) => department.title),
-    ],
-  },
-];
-
-const statusWiseDepartments: any = {
-  Accepted: {
-    ...Object.fromEntries(
-      departments.slice(2).map((department) => [department.title, 0]),
-    ),
-    "Not Assigned": 0,
-  },
-  Rejected: {
-    ...Object.fromEntries(
-      departments.slice(2).map((department) => [department.title, 0]),
-    ),
-    "Not Assigned": 0,
-  },
-  Pending: {
-    ...Object.fromEntries(
-      departments.slice(2).map((department) => [department.title, 0]),
-    ),
-    "Not Assigned": 0,
-  },
-};
-
-export default function Evaluations() {
-  const session = useSession();
+export default function EvaluationsPage() {
+  const router = useRouter();
+  const { data: session, status: sessionStatus } = useSession();
   const [filters, setFilters] = useState({
     search: "",
     status: "",
     department: "",
   });
-  const [filteredData, setFilteredData] = useState([]);
 
-  const { data, isLoading, isError } = useQuery({
+  const { data: evaluations, isLoading, isError } = useQuery({
     queryKey: ["evaluations"],
     queryFn: getEvaluations,
+    enabled: sessionStatus === "authenticated",
   });
 
-  useEffect(() => {
-    if (data) {
-      data.forEach((item: any) => {
-        const department = item.buccDepartment || "Not Assigned";
-        const status = item.status;
+  // Calculate stats based on fetched data
+  const stats = useMemo(() => {
+    const statusWise: any = {
+      Accepted: {},
+      Pending: {},
+      Rejected: {},
+    };
 
-        if (statusWiseDepartments[status]) {
-          statusWiseDepartments[status][department] += 1;
-        }
-      });
-    }
-  }, [data]);
+    departmentsInfo.forEach(dept => {
+      statusWise.Accepted[dept.name] = 0;
+      statusWise.Pending[dept.name] = 0;
+      statusWise.Rejected[dept.name] = 0;
+    });
 
-  useEffect(() => {
-    if (data) {
-      const updatedData = data.map((item: any) => ({
-        ...item,
-        url: `recruitment/${item._id}`,
-      }));
+    evaluations?.forEach((item: any) => {
+      const dept = item.buccDepartment || "Not Assigned";
+      const status = item.status || "Pending";
+      if (statusWise[status]) {
+        statusWise[status][dept] = (statusWise[status][dept] || 0) + 1;
+      }
+    });
 
-      const filtered = updatedData.filter((item: any) => {
-        const studentId = item.studentId.toString().toLowerCase();
-        const search = filters.search.toLowerCase();
+    return statusWise;
+  }, [evaluations]);
 
+  // Filter evaluations
+  const filteredEvaluations = useMemo(() => {
+    if (!evaluations) return [];
+
+    return evaluations.filter((item: any) => {
+      const searchStr = filters.search.toLowerCase();
+      const matchesSearch = 
+        !filters.search || 
+        item.name.toLowerCase().includes(searchStr) || 
+        item.studentId.toString().toLowerCase().includes(searchStr);
+      
+      const matchesStatus = !filters.status || item.status === filters.status;
+      const matchesDept = !filters.department || item.buccDepartment === filters.department;
+
+      return matchesSearch && matchesStatus && matchesDept;
+    });
+  }, [evaluations, filters]);
+
+  const columns = [
+    { header: "Student ID", accessorKey: "studentId" },
+    { header: "Name", accessorKey: "name" },
+    {
+      header: "Status",
+      accessorKey: "status",
+      cell: ({ getValue }: { getValue: () => string }) => {
+        const status = getValue() || "Pending";
         return (
-          (!filters.search ||
-            item.name.toLowerCase().includes(search) ||
-            studentId.includes(search)) &&
-          (!filters.status || item.status === filters.status) &&
-          (!filters.department || item.buccDepartment === filters.department)
+          <Badge 
+            variant="outline" 
+            className={
+              status === "Accepted" ? "border-green-500/50 text-green-600 bg-green-50/50" : 
+              status === "Rejected" ? "border-red-500/50 text-red-600 bg-red-50/50" : 
+              "border-yellow-500/50 text-yellow-600 bg-yellow-50/50"
+            }
+          >
+            {status}
+          </Badge>
         );
-      });
+      },
+    },
+    { header: "Department", accessorKey: "buccDepartment" },
+    { 
+      header: "Submission", 
+      accessorKey: "submissionDate",
+      cell: ({ getValue }: { getValue: () => string }) => {
+        return getValue() ? new Date(getValue()).toLocaleDateString() : "N/A";
+      }
+    },
+  ];
 
-      setFilteredData(filtered);
-    }
-  }, [data, filters]);
+  const filterOptions = [
+    {
+      type: "search",
+      name: "search",
+      placeholder: "Search by ID or Name",
+    },
+    {
+      type: "select",
+      name: "status",
+      placeholder: "All Statuses",
+      options: ["Pending", "Accepted", "Rejected"],
+    },
+    {
+      type: "select",
+      name: "department",
+      placeholder: "All Departments",
+      options: departmentsInfo.map(d => d.name),
+    },
+  ];
 
-  const handleFilterChange = (filter: any) => {
-    setFilters((prevFilters) => ({ ...prevFilters, ...filter }));
-  };
+  if (isLoading || sessionStatus === "loading") return <SpinnerComponent />;
+  if (isError) return <div className="p-8 text-center text-destructive">Failed to load evaluations.</div>;
 
-  const handleResetFilters = () => {
-    setFilters({ search: "", status: "", department: "" });
-  };
+  const user = session?.user as any;
+  const isPermitted = permittedDesignations.includes(user?.designation);
 
-  if (isLoading || session.status === "loading") {
-    return <SpinnerComponent />;
+  if (!isPermitted) {
+    return (
+      <div className="flex flex-col items-center justify-center h-[50vh] text-center space-y-2">
+        <h2 className="text-2xl font-serif font-medium">Access Denied</h2>
+        <p className="text-muted-foreground">You do not have permission to view recruitment data.</p>
+      </div>
+    );
   }
 
-  if (isError) {
-    return <div>Error fetching evaluations</div>;
-  }
-
-  const { designation, buccDepartment, studentId }: any = session?.data?.user;
-  const permitted = (permittedDepartments.includes(buccDepartment) && permittedDesignations.includes(designation)) || recruitmentIds.includes(studentId);
-  // if (
-  //   !permittedDepartments.includes(buccDepartment) ||
-  //   !permittedDesignations.includes(designation)
-  // ) {
-  //   return <div>You are not authorized to visit this page!</div>;
-  // }
-
-  if (!permitted) {
-     return <div>You are not authorized to visit this page!</div>;
-  }
   return (
-    <div className="">
-      <Heading headingText="Evaluations" subHeadingText="All evaluations" />
-      <div className="flex flex-col md:flex-row">
-        <div className="order-1 mt-4 w-full md:order-2 md:ml-4 md:mt-0 md:w-1/4">
-          <EvaluationStats evaluationsStats={statusWiseDepartments} />
-        </div>
-        <div className="order-2 w-full md:order-1 md:w-3/4">
+    <div className="space-y-8 pb-12">
+      <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 border-b border-border pb-6">
+        <Heading 
+          headingText="Recruitment Evaluations" 
+          subHeadingText="Manage and review applicant submissions." 
+        />
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
+        {/* Stats Sidebar */}
+        <aside className="lg:col-span-1">
+          <EvaluationStats evaluationsStats={stats} />
+        </aside>
+
+        {/* Table & Filters */}
+        <main className="lg:col-span-3 space-y-6">
           <FilterComponent
             filters={filterOptions}
-            onFilterChange={handleFilterChange}
-            onResetFilters={handleResetFilters}
+            onFilterChange={(f) => setFilters(prev => ({ ...prev, ...f }))}
+            onResetFilters={() => setFilters({ search: "", status: "", department: "" })}
           />
+          
           <TableComponent
-            data={
-              filteredData.length > 0 ||
-              Object.values(filters).some((value) => value)
-                ? filteredData
-                : data
-            }
+            data={filteredEvaluations}
             columns={columns}
+            onRowClick={(row) => router.push(`/dashboard/recruitment/${row._id}`)}
           />
-        </div>
+        </main>
       </div>
     </div>
   );

@@ -2,99 +2,124 @@ import { auth } from "@/auth";
 import departments from "@/constants/departments";
 import designations from "@/constants/designations";
 import dbConnect from "@/lib/dbConnect";
-import MemberInfo from "@/model/MemberInfo";
 import { NextResponse } from "next/server";
+import { MongoClient } from "mongodb";
+
+const client = new MongoClient(process.env.MONGODB_URI as string);
+const db = client.db(process.env.MONGODB_DB as string);
 
 const departmentsName = departments.map((department) => department.title);
 const designationsName = designations.map((designation) => designation.title);
 
-export async function GET() {
-  await dbConnect();
-  const user = await auth();
+export async function GET(request: Request) {
+  const session = await auth();
 
-  if (!user) {
+  if (!session) {
     return NextResponse.json({
       message: "You are not authorized to view this page",
-    });
+    }, { status: 401 });
+  }
+
+  const user = session.user as any;
+
+  const { searchParams } = new URL(request.url);
+  const minimal = searchParams.get("minimal");
+
+  if (minimal) {
+    try {
+      const usersCollection = db.collection("user");
+      const users = await usersCollection.find(
+        { memberStatus: "Active" },
+        { projection: { name: 1, designation: 1, buccDepartment: 1 } }
+      ).toArray();
+
+      return NextResponse.json({
+        users: users.map(u => ({
+          id: u._id.toString(),
+          name: u.name,
+          designation: u.designation,
+          buccDepartment: u.buccDepartment
+        }))
+      });
+    } catch (error) {
+      return NextResponse.json({ error: "Failed to search members" }, { status: 500 });
+    }
+  }
+
+  if (user.memberStatus === "Alumni") {
+    return NextResponse.json({
+      message: "Alumni do not have permission to view members data.",
+    }, { status: 403 });
   }
 
   if (
-    !["Director", "Assistant Director", "Senior Executive"].includes(
-      user?.user.designation
+    !["President", "Vice President", "General Secretary", "Treasurer", "Director", "Assistant Director", "Senior Executive"].includes(
+      user.designation
     )
   ) {
     return NextResponse.json({
-      message: `Designation: ${user?.user.designation} does not have the permission to view this page.`,
-    });
-  }
-  const seView = [
-    "Director", "Assistant Director", "Senior Executive"
-  ]
-  const ebView = [
-    "Director",
-    "Assistant Director",
-    "Senior Executive",
-    "Executive",
-    "General Member"
-  ]
-  var view = ebView
-  if (user?.user.designation === "Senior Executive") {
-    view = seView
+      message: `Designation: ${user.designation} does not have the permission to view this page.`,
+    }, { status: 403 });
   }
 
+  const seView = ["Director", "Assistant Director", "Senior Executive"];
+  const ebView = ["Director", "Assistant Director", "Senior Executive", "Executive", "General Member"];
+  const gbView = [...designations.map(d => d.title)];
+
+  const isGB = ["President", "Vice President", "General Secretary", "Treasurer"].includes(user.designation);
+  
+  let view = ebView;
+  if (user.designation === "Senior Executive") {
+    view = seView;
+  } else if (isGB) {
+    view = gbView;
+  }
 
   try {
-    const filter = {
-      buccDepartment: user?.user.buccDepartment,
-      studentId: { $ne: "00000000" },
-      designation: { $in: view}
+    const usersCollection = db.collection("user");
+    
+    const filter: any = {
+      designation: { $in: view }
     };
 
-    // Set fields to fetch based on designation
-    const selectFields =
-      user?.user.designation === "Senior Executive"
-        ? "email contactNumber emergencyContact name designation buccDepartment profileImage"
-        : "";
-
-    // Query members with appropriate fields
-    const users = await MemberInfo.find(filter)
-      .select(selectFields)
-      .lean(); // Convert to plain objects for better performance
-
-    // Custom sorting logic
-    users.sort((a, b) => {
-      const departmentComparison =
-        departmentsName.indexOf(a.buccDepartment) -
-        departmentsName.indexOf(b.buccDepartment);
-
-      if (departmentComparison !== 0) {
-        return departmentComparison;
-      }
-
-      return (
-        designationsName.indexOf(a.designation) -
-        designationsName.indexOf(b.designation)
-      );
-    });
-
-    // Format `memberSocials` for Senior Executives
-    if (user?.user.designation === "Senior Executive") {
-      users.forEach((user) => {
-        if (user.memberSocials) {
-          user.memberSocials = {
-            Github: user.memberSocials?.Github || null,
-            LinkedIn: user.memberSocials?.Linkedin || null,
-            Facebook: user.memberSocials?.Facebook || null,
-          };
-        }
-      });
+    // If not GB, only show members of their own department
+    if (!isGB) {
+      filter.buccDepartment = user.buccDepartment;
     }
 
-    return NextResponse.json({ users });
-  } catch (error) {
+    const projection: any = {};
+    if (user.designation === "Senior Executive") {
+      projection.email = 1;
+      projection.phoneNumber = 1;
+      projection.emergencyContact = 1;
+      projection.name = 1;
+      projection.designation = 1;
+      projection.buccDepartment = 1;
+      projection.profileImage = 1;
+      projection.studentId = 1;
+    }
+
+    const members = await usersCollection.find(filter, { projection }).toArray();
+
+    // Custom sorting logic
+    members.sort((a: any, b: any) => {
+      const deptA = a.buccDepartment || "";
+      const deptB = b.buccDepartment || "";
+      const desA = a.designation || "";
+      const desB = b.designation || "";
+
+      const departmentComparison = departmentsName.indexOf(deptA) - departmentsName.indexOf(deptB);
+      if (departmentComparison !== 0) return departmentComparison;
+
+      return designationsName.indexOf(desA) - designationsName.indexOf(desB);
+    });
+
+    return NextResponse.json({ users: members });
+  } catch (error: any) {
+    console.error("Fetch members error:", error);
     return NextResponse.json({
       message: "An error occurred while fetching members.",
-      error: error,
-    });
+      error: error.message,
+    }, { status: 500 });
   }
 }

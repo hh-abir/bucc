@@ -1,49 +1,44 @@
-import dotenv from "dotenv";
 import mongoose from "mongoose";
 
-dotenv.config();
+const MONGODB_URI = process.env.MONGODB_URI;
+const MONGODB_DB = process.env.MONGODB_DB;
 
-type ConnectionObject = {
-  isConnected?: number;
-};
+if (!MONGODB_URI || !MONGODB_DB) {
+  throw new Error("MONGODB_URI and MONGODB_DB must be defined in the environment variables.");
+}
 
-const connection: ConnectionObject = {};
-const { MONGODB_URI, MONGODB_DB } = process.env;
+// Global caching pattern to prevent connection exhaustion during hot-reloads and builds
+let cached = (global as any).mongoose;
 
-async function dbConnect(): Promise<void> {
-  if (connection.isConnected) {
-    console.log("Using existing connection");
-    return;
+if (!cached) {
+  cached = (global as any).mongoose = { conn: null, promise: null };
+}
+
+async function dbConnect() {
+  if (cached.conn) {
+    return cached.conn;
   }
 
-  if (!MONGODB_URI || !MONGODB_DB) {
-    console.error(
-      "MONGODB_URI and MONGODB_DB must be defined in environment variables.",
-    );
-    process.exit(1);
+  if (!cached.promise) {
+    const opts = {
+      dbName: MONGODB_DB,
+      bufferCommands: false,
+      maxPoolSize: 10, // Lowered to a safe threshold for Next.js/Serverless
+    };
+
+    cached.promise = mongoose.connect(MONGODB_URI as string, opts).then((mongoose) => {
+      return mongoose;
+    });
   }
 
   try {
-    const db = await mongoose.connect(MONGODB_URI, {
-      dbName: MONGODB_DB,
-      bufferCommands: false,
-      maxPoolSize: 500,
-    });
-
-    connection.isConnected = db.connections[0].readyState;
-
-    console.log("New connection created");
-  } catch (error) {
-    console.error("Error connecting to database", error);
-    process.exit(1);
+    cached.conn = await cached.promise;
+  } catch (e) {
+    cached.promise = null;
+    throw e;
   }
-}
 
-// Ensure graceful shutdown
-process.on("SIGINT", async () => {
-  await mongoose.disconnect();
-  console.log("Mongoose connection disconnected due to app termination");
-  process.exit(0);
-});
+  return cached.conn;
+}
 
 export default dbConnect;

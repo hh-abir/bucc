@@ -1,14 +1,21 @@
 import { hasAuth } from "@/helpers/hasAuth";
 import dbConnect from "@/lib/dbConnect";
-import PreregMemberInfo from "@/model/PreregMemberInfo";
+import PreRegMember from "@/model/PreRegMember";
 import { NextResponse } from "next/server";
 
-const permittedDepartments = ["Human Resources"];
-const permittedDesignations = ["Director", "Assistant Director"];
+const permittedDepartments = ["Human Resources", "Governing Body", "Research and Development"];
+const permittedDesignations = [
+  "President",
+  "Vice President",
+  "General Secretary",
+  "Treasurer",
+  "Director",
+  "Assistant Director",
+];
 
 export async function PATCH(
   request: Request,
-  { params }: { params: { id: string } },
+  { params }: { params: Promise<{ id: string }> },
 ) {
   const { session, isPermitted } = await hasAuth(
     permittedDesignations,
@@ -21,12 +28,12 @@ export async function PATCH(
     });
   }
 
-  const { id } = params;
+  const { id } = await params;
 
   try {
     const updatedData = await request.json();
 
-    const updatedMember = await PreregMemberInfo.findByIdAndUpdate(
+    const updatedMember = await PreRegMember.findByIdAndUpdate(
       id,
       { $set: updatedData },
       { new: true, runValidators: true },
@@ -50,7 +57,7 @@ export async function PATCH(
 
 export async function GET(
   request: Request,
-  { params }: { params: { id: string } },
+  { params }: { params: Promise<{ id: string }> },
 ) {
   const { session, isPermitted } = await hasAuth(
     permittedDesignations,
@@ -65,10 +72,10 @@ export async function GET(
 
   await dbConnect();
 
-  const { id } = params;
+  const { id } = await params;
 
   try {
-    const member = await PreregMemberInfo.findById(id);
+    const member = await PreRegMember.findById(id);
 
     if (!member) {
       return NextResponse.json(

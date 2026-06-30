@@ -7,12 +7,13 @@ declare module "next-auth" {
   interface Session {
     user: {
       name: string;
-      id: int;
+      id: number;
       email: string;
       image: string;
       designation: string;
       buccDepartment: string;
       studentId: string;
+      memberStatus?: string;
     };
   }
 }

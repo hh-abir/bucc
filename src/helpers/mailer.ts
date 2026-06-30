@@ -3,7 +3,6 @@ import {
   sendVerifyToken,
   welcomeMail,
 } from "@/helpers/mailTemplates";
-import UserAuth from "@/model/UserAuth";
 import "dotenv/config";
 import nodemailer from "nodemailer";
 
@@ -25,10 +24,8 @@ const singleWelcomeMail = async (
   password: String,
 ) => {
   try {
-    const user = await UserAuth.findOne({ _id: userId });
-    if (!user) {
-      throw new Error("User not found");
-    }
+    // We don't need to fetch the user from DB since we already have the required data
+    // passed as arguments. This also avoids issues with different user models.
     const mailOptions = {
       from: process.env.GMAIL_USERNAME,
       to: email.toString(),
@@ -65,7 +62,6 @@ const singleVerifyMail = async (
 };
 
 const singleResetMail = async (
-  name: string,
   email: string,
   resetToken: string,
 ) => {
@@ -74,7 +70,7 @@ const singleResetMail = async (
       from: process.env.GMAIL_USERNAME,
       to: email,
       subject: "Reset your BUCC Portal Password",
-      text: resetMail(name, resetToken),
+      text: resetMail(resetToken),
     };
 
     await transporter.sendMail(mailOptions);

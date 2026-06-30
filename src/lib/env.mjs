@@ -7,7 +7,6 @@ export const env = createEnv({
     NODE_ENV: z
       .enum(["development", "test", "production"])
       .default("development"),
-    DATABASE_URL: z.string().min(1),
     MONGODB_URI: z.string().url(),
     MONGODB_DB: z.string(),
     AUTH_SECRET: z.string(),
@@ -16,11 +15,6 @@ export const env = createEnv({
     GMAIL_USERNAME: z.string().email(),
     GMAIL_APP_SECRET: z.string(),
     GOOGLE_CLIENT_EMAIL: z.string().email(),
-    GOOGLE_PRIVATE_KEY: z.string(),
-    GOOGLE_SHEET_ID: z.string(),
-    REDIS_REST_URL: z.string().url(),
-    REDIS_REST_TOKEN: z.string(),
-    OPENAI_API_KEY: z.string(),
   },
   client: {
     NEXT_PUBLIC_API_URL: z.string().min(1),
@@ -37,7 +31,6 @@ export const env = createEnv({
     NEXT_PUBLIC_FIREBASE_SERVICE_KEY: z.string(),
   },
   runtimeEnv: {
-    DATABASE_URL: process.env.DATABASE_URL,
     MONGODB_URI: process.env.MONGODB_URI,
     MONGODB_DB: process.env.MONGODB_DB,
     AUTH_SECRET: process.env.AUTH_SECRET,
@@ -46,11 +39,6 @@ export const env = createEnv({
     GMAIL_USERNAME: process.env.GMAIL_USERNAME,
     GMAIL_APP_SECRET: process.env.GMAIL_APP_SECRET,
     GOOGLE_CLIENT_EMAIL: process.env.GOOGLE_CLIENT_EMAIL,
-    GOOGLE_PRIVATE_KEY: process.env.GOOGLE_PRIVATE_KEY,
-    GOOGLE_SHEET_ID: process.env.GOOGLE_SHEET_ID,
-    REDIS_REST_URL: process.env.REDIS_REST_URL,
-    REDIS_REST_TOKEN: process.env.REDIS_REST_TOKEN,
-    OPENAI_API_KEY: process.env.OPENAI_API_KEY,
     NEXT_PUBLIC_API_URL: process.env.NEXT_PUBLIC_API_URL,
     NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME:
       process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME,
@@ -93,4 +81,3 @@ export const env = createEnv({
       process.env.NEXT_PUBLIC_FIREBASE_SERVICE_KEY,
   },
 });
-

@@ -1,11 +1,4 @@
-// Intake Info
-const intakeInfo = {
-  intakeName: "Summer 2026",
-  intakeStartDate: "2026-06-21",
-  intakeEndDate: "2026-06-25",
-  isIntakeActive: false,
-  isEvaluationActive: true,
-};
+
 
 const buccSocials = {
   facebook: "https://www.facebook.com/BRACUCC",
@@ -15,6 +8,5 @@ const buccSocials = {
   github: "https://www.github.com/buccbracu",
 };
 
-export { buccSocials, intakeInfo };
+export { buccSocials };
 
-export default intakeInfo;

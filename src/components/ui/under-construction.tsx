@@ -1,33 +1,13 @@
-import { Button } from "@/components/ui/button";
-import Image from "next/image";
 import Link from "next/link";
 
 export default function UnderConstruction() {
   return (
-    <div className="flex flex-col items-center p-4">
-      <Image
-        className="p-3 dark:invert dark:filter"
-        src="/images/under-construction.png"
-        width={150}
-        height={150}
-        alt="Under Construction"
-      />
-      <div className="max-w-[550px] text-center">
-        <h1 className="text-lg">This Page Is Under Construction</h1>
-        <p className="mt-2 text-center text-lg leading-relaxed">
-          👋 Hey there! We truly appreciate your patience and support as we work
-          hard to bring you the best experience.
-          <br />
-          <span className="mt-2 block font-medium">
-            From — 💻 Web Team, Research & Development Departmment
-            <br />
-            🎓 BUCC
-          </span>
-        </p>
-      </div>
-      <Button className="text-md mt-4 bg-[#127cc1] text-white hover:bg-[#1f4864] dark:hover:bg-[#1f4864]">
-        <Link href={"/"}>Back to Home</Link>
-      </Button>
+    <div className="flex min-h-64 flex-col items-center justify-center gap-3 rounded-lg border border-dashed border-border p-10 text-center">
+      <h1 className="font-serif text-3xl">Under construction</h1>
+      <p className="max-w-md text-sm text-muted-foreground">This portal area is being rebuilt for the new BUCC dashboard.</p>
+      <Link href="/dashboard" className="text-sm font-medium underline underline-offset-4">
+        Back to dashboard
+      </Link>
     </div>
   );
 }

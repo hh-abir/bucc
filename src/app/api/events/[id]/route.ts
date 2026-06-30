@@ -1,113 +1,46 @@
-import { hasAuth } from "@/helpers/hasAuth";
+import { auth } from "@/lib/auth";
 import dbConnect from "@/lib/dbConnect";
 import Event from "@/model/Event";
-import PR from "@/model/PR";
-import { NextRequest, NextResponse } from "next/server";
+import { canManageEvents } from "@/lib/permissions";
+import { NextResponse } from "next/server";
 
-const permittedDesignations = ["Director", "Assistant Director"];
-const permittedDepartments = ["Press Release and Publications"];
+export async function PATCH(request: Request, { params }: { params: Promise<{ id: string }> }) {
+  const session = await auth.api.getSession({
+    headers: request.headers,
+  });
 
-export async function GET(
-  request: NextRequest,
-  { params }: { params: { id: string } },
-) {
+  if (!session || !canManageEvents(session.user as any)) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 403 });
+  }
+
+  await dbConnect();
   try {
-    await dbConnect();
-    const { id } = params;
-
-    const event = await Event.findById(id);
-    if (!event) {
-      return NextResponse.json({ error: "Event not found" }, { status: 404 });
-    }
-
-    return NextResponse.json(event, { status: 200 });
+    const { id } = await params;
+    const body = await request.json();
+    const updatedEvent = await Event.findByIdAndUpdate(id, body, { new: true });
+    if (!updatedEvent) return NextResponse.json({ error: "Event not found" }, { status: 404 });
+    return NextResponse.json(updatedEvent);
   } catch (error: any) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    return NextResponse.json({ error: error.message || "Failed to update event" }, { status: 400 });
   }
 }
 
-export async function PATCH(
-  request: NextRequest,
-  { params }: { params: { id: string } },
-) {
-  const { session, isPermitted } = await hasAuth(
-    permittedDesignations,
-    permittedDepartments,
-  );
+export async function DELETE(request: Request, { params }: { params: Promise<{ id: string }> }) {
+  const session = await auth.api.getSession({
+    headers: request.headers,
+  });
 
-  if (!session || !isPermitted) {
-    return NextResponse.json(
-      { message: "You are not authorized to update this Event" },
-      { status: 401 },
-    );
+  if (!session || !canManageEvents(session.user as any)) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 403 });
   }
 
-  let updateData;
+  await dbConnect();
   try {
-    updateData = await request.json();
-  } catch (err) {
-    return NextResponse.json(
-      { error: "Invalid or missing JSON body" },
-      { status: 400 },
-    );
-  }
-
-  try {
-    await dbConnect();
-    const { id } = params;
-
-    const event = await Event.findById(id);
-    if (!event) {
-      return NextResponse.json({ error: "Event not found" }, { status: 404 });
-    }
-
-    const updatedEvent = await Event.findByIdAndUpdate(id, updateData, {
-      new: true,
-      runValidators: true,
-    });
-
-    return NextResponse.json(updatedEvent, { status: 200 });
+    const { id } = await params;
+    const deletedEvent = await Event.findByIdAndDelete(id);
+    if (!deletedEvent) return NextResponse.json({ error: "Event not found" }, { status: 404 });
+    return NextResponse.json({ message: "Event deleted successfully" });
   } catch (error: any) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
-  }
-}
-
-export async function DELETE(
-  request: NextRequest,
-  { params }: { params: { id: string } },
-) {
-  const { session, isPermitted } = await hasAuth(
-    permittedDesignations,
-    permittedDepartments,
-  );
-
-  if (!session || !isPermitted) {
-    return NextResponse.json(
-      { message: "You are not authorized to delete this Event" },
-      { status: 401 },
-    );
-  }
-
-  try {
-    await dbConnect();
-    const { id } = params;
-
-    const event = await Event.findById(id);
-    if (!event) {
-      return NextResponse.json({ error: "Event not found" }, { status: 404 });
-    }
-
-    // Delete related PRs first
-    await PR.deleteMany({ eventId: id });
-
-    // Then delete the event
-    await Event.findByIdAndDelete(id);
-
-    return NextResponse.json(
-      { message: "Event and related PRs deleted successfully" },
-      { status: 200 },
-    );
-  } catch (error: any) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    return NextResponse.json({ error: error.message || "Failed to delete event" }, { status: 500 });
   }
 }

@@ -1,7 +1,7 @@
 const skills = [
   { label: "Android Development", value: "Android Development" },
   { label: "iOS Development", value: "iOS Development" },
-  { label: "Web Development", value: "Android Development" },
+  { label: "Web Development", value: "Web Development" },
   { label: "Frontend Development", value: "Frontend Development" },
   { label: "Backend Development", value: "Backend Development" },
   { label: "Full Stack Development", value: "Full Stack Development" },
