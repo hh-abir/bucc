@@ -13,33 +13,48 @@ export interface User {
 }
 
 interface UserContextProps {
-  user: User | null;
+  user: any | null;
   isLoading: boolean;
-  setUser: (user: User | null) => void;
+  setUser: (user: any | null) => void;
+  refreshUser: () => Promise<void>;
 }
 
 const UserContext = createContext<UserContextProps>({
   user: null,
   isLoading: true,
   setUser: () => {},
+  refreshUser: async () => {},
 });
 
 export const UserProvider = ({ children }: { children: React.ReactNode }) => {
-  const { data: session, status } = useSession();
-  const [user, setUser] = useState<User | null>(null);
+  const sessionData = useSession();
+  const session = sessionData?.data;
+  const status = sessionData?.status;
+  const update = sessionData?.update;
+
+  const [user, setUser] = useState<any | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+
+  const refreshUser = async () => {
+    if (update) {
+      const newSession = await update();
+      if (newSession?.user) {
+        setUser(newSession.user);
+      }
+    }
+  };
 
   useEffect(() => {
     if (status === "loading") {
       setIsLoading(true);
     } else {
       setIsLoading(false);
-      setUser((session?.user as User) || null);
+      setUser(session?.user || null);
     }
   }, [session, status]);
 
   return (
-    <UserContext.Provider value={{ user, isLoading, setUser }}>
+    <UserContext.Provider value={{ user, isLoading, setUser, refreshUser }}>
       {children}
     </UserContext.Provider>
   );

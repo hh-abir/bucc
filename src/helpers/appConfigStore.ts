@@ -1,26 +1,28 @@
-import redis from "@/lib/redis";
+import dbConnect from "@/lib/dbConnect";
+import AppConfig from "@/model/AppConfig";
 
 export async function getConfigValue<T = string>(
   key: string,
   defaultValue?: T,
 ): Promise<T> {
-  const raw = (await redis.get(key)) as string | null; // 👈 Fix: explicitly annotate type
+  await dbConnect();
+  const config: any = await AppConfig.findOne({ key }).lean();
 
-  if (raw === null || raw === undefined) {
+  if (!config || config.value === null || config.value === undefined) {
     return defaultValue as T;
   }
 
-  try {
-    return JSON.parse(raw) as T;
-  } catch {
-    return raw as unknown as T;
-  }
+  return config.value as T;
 }
 
 export async function setConfigValue<T = string>(
   key: string,
   value: T,
 ): Promise<void> {
-  const stringified = typeof value === "string" ? value : JSON.stringify(value);
-  await redis.set(key, stringified);
+  await dbConnect();
+  await AppConfig.findOneAndUpdate(
+    { key },
+    { $set: { value } },
+    { upsert: true, new: true },
+  );
 }

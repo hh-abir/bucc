@@ -6,13 +6,13 @@ import FilterComponent from "@/components/table/FilterComponent";
 import TableComponent from "@/components/table/TableComponent";
 import { Button } from "@/components/ui/button";
 import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetFooter,
+  SheetHeader,
+  SheetTitle,
+} from "@/components/ui/sheet";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
@@ -34,8 +34,9 @@ interface PreRegMember {
   name: string;
   studentId: string;
   email: string;
-  departmentBracu: string;
-  joinedBracu: string;
+  bracuDepartment: string;
+  buccDepartment: string;
+  phoneNumber: string;
 }
 
 const permittedDepartment = "Human Resources";
@@ -45,8 +46,8 @@ const columns = [
   { header: "Student ID", accessorKey: "studentId" },
   { header: "Name", accessorKey: "name" },
   { header: "Email", accessorKey: "email" },
-  { header: "Department Bracu", accessorKey: "departmentBracu" },
-  { header: "Joined Bracu", accessorKey: "joinedBracu" },
+  { header: "BRACU Department", accessorKey: "bracuDepartment" },
+  { header: "BUCC Department", accessorKey: "buccDepartment" },
 ];
 
 const filterOptions = [
@@ -57,15 +58,26 @@ const filterOptions = [
   },
 ];
 
+
 function PreRegMembers() {
   const [preregMemberData, setPreregMemberData] = useState<PreRegMember | null>(
     null,
   );
-  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [isSheetOpen, setIsSheetOpen] = useState(false);
   const [filters, setFilters] = useState({
     search: "",
   });
   const [filteredData, setFilteredData] = useState([]);
+
+  const buccDepartments = [
+    "Communication and Marketing",
+    "Creative",
+    "Event Management",
+    "Finance",
+    "Human Resources",
+    "Press Release and Publications",
+    "Research and Development",
+  ];
 
   const { data, isLoading, isError } = useQuery({
     queryKey: ["preRegMembers"],
@@ -99,10 +111,10 @@ function PreRegMembers() {
 
   const handleRowClick = async (row: any) => {
     try {
-      const memberId = row.original._id;
+      const memberId = row._id;
       const member = await getPreRegMember(memberId);
       setPreregMemberData(member);
-      setIsDialogOpen(true);
+      setIsSheetOpen(true);
     } catch (error) {
       console.error("Failed to fetch member details:", error);
       toast.error("Failed to fetch member details");
@@ -126,7 +138,7 @@ function PreRegMembers() {
 
       if (response.ok) {
         toast.success("Changes saved successfully!");
-        setIsDialogOpen(false);
+        setIsSheetOpen(false);
       } else {
         const errorData = await response.json();
         toast.error(errorData.message || "Failed to update member details.");
@@ -163,7 +175,7 @@ function PreRegMembers() {
               filteredData.length > 0 ||
               Object.values(filters).some((value) => value)
                 ? filteredData
-                : data
+                : (data?.users || [])
             }
             columns={columns}
             onRowClick={handleRowClick}
@@ -171,171 +183,155 @@ function PreRegMembers() {
         </div>
       </div>
 
-      <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-        <DialogContent className="h-fit max-w-md">
-          <DialogHeader>
-            <DialogTitle>Edit Member</DialogTitle>
-            <DialogDescription>
+      <Sheet open={isSheetOpen} onOpenChange={setIsSheetOpen}>
+        <SheetContent className="overflow-y-auto">
+          <SheetHeader>
+            <SheetTitle>Edit Member</SheetTitle>
+            <SheetDescription>
               Update the details for this pre-registered member.
-            </DialogDescription>
-          </DialogHeader>
+            </SheetDescription>
+          </SheetHeader>
           {preregMemberData && (
             <form
               onSubmit={(e) => {
                 e.preventDefault();
                 handleSubmit();
               }}
-              className="space-y-4"
+              className="space-y-6"
             >
-              {/* Name */}
-              <div>
-                <Label htmlFor="name">Name</Label>
-                <Input
-                  id="name"
-                  placeholder="Enter your name"
-                  value={preregMemberData.name}
-                  onChange={(e) =>
-                    setPreregMemberData((prev) =>
-                      prev ? { ...prev, name: e.target.value } : null,
-                    )
-                  }
-                />
-              </div>
+              <div className="space-y-4">
+                {/* Name */}
+                <div className="space-y-2">
+                  <Label htmlFor="name" className="text-xs font-bold uppercase tracking-widest text-muted-foreground">Name</Label>
+                  <Input
+                    id="name"
+                    className="bg-transparent border-0 border-b border-border rounded-none px-0 focus-visible:ring-0 focus-visible:border-primary transition-colors"
+                    placeholder="Enter name"
+                    value={preregMemberData.name}
+                    onChange={(e) =>
+                      setPreregMemberData((prev) =>
+                        prev ? { ...prev, name: e.target.value } : null,
+                      )
+                    }
+                  />
+                </div>
 
-              {/* Student ID */}
-              <div>
-                <Label htmlFor="studentId">Student ID</Label>
-                <Input
-                  id="studentId"
-                  placeholder="Enter your student ID"
-                  value={preregMemberData.studentId}
-                  onChange={(e) =>
-                    setPreregMemberData((prev) =>
-                      prev ? { ...prev, studentId: e.target.value } : null,
-                    )
-                  }
-                />
-              </div>
+                {/* Student ID */}
+                <div className="space-y-2">
+                  <Label htmlFor="studentId" className="text-xs font-bold uppercase tracking-widest text-muted-foreground">Student ID</Label>
+                  <Input
+                    id="studentId"
+                    className="bg-transparent border-0 border-b border-border rounded-none px-0 focus-visible:ring-0 focus-visible:border-primary transition-colors"
+                    placeholder="Enter student ID"
+                    value={preregMemberData.studentId}
+                    onChange={(e) =>
+                      setPreregMemberData((prev) =>
+                        prev ? { ...prev, studentId: e.target.value } : null,
+                      )
+                    }
+                  />
+                </div>
 
-              {/* G-Suite Email */}
-              <div>
-                <Label htmlFor="email">G-Suite Email Address</Label>
-                <Input
-                  id="email"
-                  placeholder="Enter your G-Suite email"
-                  value={preregMemberData.email}
-                  onChange={(e) =>
-                    setPreregMemberData((prev) =>
-                      prev ? { ...prev, email: e.target.value } : null,
-                    )
-                  }
-                />
-              </div>
+                {/* G-Suite Email */}
+                <div className="space-y-2">
+                  <Label htmlFor="email" className="text-xs font-bold uppercase tracking-widest text-muted-foreground">G-Suite Email</Label>
+                  <Input
+                    id="email"
+                    className="bg-transparent border-0 border-b border-border rounded-none px-0 focus-visible:ring-0 focus-visible:border-primary transition-colors"
+                    placeholder="Enter email"
+                    value={preregMemberData.email}
+                    onChange={(e) =>
+                      setPreregMemberData((prev) =>
+                        prev ? { ...prev, email: e.target.value } : null,
+                      )
+                    }
+                  />
+                </div>
 
-              {/* Joined BRACU - Semester and Year */}
-              <div>
-                <Label htmlFor="joinedBracu">Joined BRACU</Label>
-                <div className="flex w-full gap-2">
-                  {/* Semester */}
-                  <div className="w-1/2">
-                    <Select
-                      value={preregMemberData.joinedBracu.split(" ")[0]} // Assuming format "Semester Year"
-                      onValueChange={(value) =>
-                        setPreregMemberData((prev) =>
-                          prev
-                            ? {
-                                ...prev,
-                                joinedBracu: `${value} ${prev.joinedBracu.split(" ")[1]}`,
-                              }
-                            : null,
-                        )
-                      }
-                    >
-                      <SelectTrigger>
-                        <SelectValue placeholder="Semester" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="Spring">Spring</SelectItem>
-                        <SelectItem value="Summer">Summer</SelectItem>
-                        <SelectItem value="Fall">Fall</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
+                {/* Phone Number */}
+                <div className="space-y-2">
+                  <Label htmlFor="phoneNumber" className="text-xs font-bold uppercase tracking-widest text-muted-foreground">Phone Number</Label>
+                  <Input
+                    id="phoneNumber"
+                    className="bg-transparent border-0 border-b border-border rounded-none px-0 focus-visible:ring-0 focus-visible:border-primary transition-colors"
+                    placeholder="Enter phone number"
+                    value={preregMemberData.phoneNumber}
+                    onChange={(e) =>
+                      setPreregMemberData((prev) =>
+                        prev ? { ...prev, phoneNumber: e.target.value } : null,
+                      )
+                    }
+                  />
+                </div>
 
-                  {/* Year */}
-                  <div className="w-1/2">
-                    <Select
-                      value={preregMemberData.joinedBracu.split(" ")[1]} // Assuming format "Semester Year"
-                      onValueChange={(value) =>
-                        setPreregMemberData((prev) =>
-                          prev
-                            ? {
-                                ...prev,
-                                joinedBracu: `${prev.joinedBracu.split(" ")[0]} ${value}`,
-                              }
-                            : null,
-                        )
-                      }
-                    >
-                      <SelectTrigger>
-                        <SelectValue placeholder="Year" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {Array.from({ length: 12 }, (_, i) => {
-                          const year = new Date().getFullYear() - i;
-                          return (
-                            <SelectItem key={year} value={year.toString()}>
-                              {year}
-                            </SelectItem>
-                          );
-                        })}
-                      </SelectContent>
-                    </Select>
-                  </div>
+                {/* BRACU Department */}
+                <div className="space-y-2">
+                  <Label htmlFor="bracuDepartment" className="text-xs font-bold uppercase tracking-widest text-muted-foreground">BRACU Department</Label>
+                  <Select
+                    value={preregMemberData.bracuDepartment}
+                    onValueChange={(value) =>
+                      setPreregMemberData((prev) =>
+                        prev ? { ...prev, bracuDepartment: value } : null,
+                      )
+                    }
+                  >
+                    <SelectTrigger className="bg-transparent border-0 border-b border-border rounded-none px-0 focus:ring-0">
+                      <SelectValue placeholder="Select BRACU Department" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {BRACUDepartments.map((department) => (
+                        <SelectItem
+                          key={department.name}
+                          value={department.name}
+                        >
+                          {department.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                {/* Preferred BUCC Department */}
+                <div className="space-y-2">
+                  <Label htmlFor="buccDepartment" className="text-xs font-bold uppercase tracking-widest text-muted-foreground">Preferred BUCC Department</Label>
+                  <Select
+                    value={preregMemberData.buccDepartment}
+                    onValueChange={(value) =>
+                      setPreregMemberData((prev) =>
+                        prev ? { ...prev, buccDepartment: value } : null,
+                      )
+                    }
+                  >
+                    <SelectTrigger className="bg-transparent border-0 border-b border-border rounded-none px-0 focus:ring-0">
+                      <SelectValue placeholder="Select BUCC Department" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {buccDepartments.map((dept) => (
+                        <SelectItem key={dept} value={dept}>
+                          {dept}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </div>
               </div>
 
-              {/* Department */}
-              <div>
-                <Label htmlFor="departmentBracu">Department</Label>
-                <Select
-                  value={preregMemberData.departmentBracu}
-                  onValueChange={(value) =>
-                    setPreregMemberData((prev) =>
-                      prev ? { ...prev, departmentBracu: value } : null,
-                    )
-                  }
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Department" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {BRACUDepartments.map((department) => (
-                      <SelectItem
-                        key={department.name}
-                        value={department.initial}
-                      >
-                        {department.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-
-              {/* Dialog Footer */}
-              <DialogFooter>
-                <Button type="submit">Save Changes</Button>
+              {/* Sheet Footer */}
+              <SheetFooter>
+                <Button type="submit" className="w-full">Save Changes</Button>
                 <Button
                   variant="outline"
-                  onClick={() => setIsDialogOpen(false)}
+                  type="button"
+                  className="w-full"
+                  onClick={() => setIsSheetOpen(false)}
                 >
                   Cancel
                 </Button>
-              </DialogFooter>
+              </SheetFooter>
             </form>
           )}
-        </DialogContent>
-      </Dialog>
+        </SheetContent>
+      </Sheet>
     </div>
   );
 }

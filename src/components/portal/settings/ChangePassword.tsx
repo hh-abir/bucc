@@ -1,189 +1,120 @@
 "use client";
 
-import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardDescription,
-  CardFooter,
-  CardHeader,
+import { useState } from "react";
+import { 
+  Card, 
+  CardContent, 
+  CardHeader, 
   CardTitle,
+  CardDescription 
 } from "@/components/ui/card";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { LoadingButton } from "@/components/ui/loading-button";
-import PasswordField from "@/components/ui/password-field";
-import { resetPasswordSchema } from "@/schemas/resetPasswordSchema";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { useEffect, useState } from "react";
-import { useForm } from "react-hook-form";
+import { authClient } from "@/lib/auth-client";
 import { toast } from "sonner";
-
-interface ChangePasswordForm {
-  currentPassword: string;
-  newPassword: string;
-  confirmPassword: string;
-}
+import { KeyRound, ShieldAlert } from "lucide-react";
 
 export default function ChangePassword() {
-  const [openModal, setOpenModal] = useState(false);
-  const [newPasswordVisible, setNewPasswordVisible] = useState(false);
-  const [confirmPasswordVisible, setConfirmPasswordVisible] = useState(false);
-  const [currentPasswordVisible, setCurrentPasswordVisible] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [passwordMatch, setPasswordMatch] = useState(false);
-  const [isStrongPassword, setIsStrongPassword] = useState(false);
-
-  // Set up form handling with react-hook-form
-  const {
-    register,
-    handleSubmit,
-    watch,
-    formState: { errors, isSubmitting },
-  } = useForm<ChangePasswordForm>({
-    resolver: zodResolver(resetPasswordSchema),
-    mode: "onChange",
+  const [formData, setFormData] = useState({
+    currentPassword: "",
+    newPassword: "",
+    confirmPassword: "",
   });
 
-  const newPassword = watch("newPassword");
-  const confirmPassword = watch("confirmPassword");
-
-  // Check password match
-  useEffect(() => {
-    if (newPassword && confirmPassword) {
-      setPasswordMatch(newPassword === confirmPassword);
+  const handlePasswordChange = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (formData.newPassword !== formData.confirmPassword) {
+      toast.error("New passwords do not match");
+      return;
     }
-  }, [newPassword, confirmPassword]);
 
-  // Password strength checker
-  const handlePasswordChange = (password: string) => {
-    const strongPassword =
-      password.length >= 8 &&
-      /\d/.test(password) &&
-      /[A-Z]/.test(password) &&
-      /[!@#$%^&*]/.test(password);
-    setIsStrongPassword(strongPassword);
-  };
+    if (formData.newPassword.length < 8) {
+      toast.error("Password must be at least 8 characters long");
+      return;
+    }
 
-  // Handle form submission
-  const handleChangePassword = async (data: ChangePasswordForm) => {
     setLoading(true);
     try {
-      const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/users/changePassword`,
-        {
-          method: "PATCH",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            currentPassword: data.currentPassword,
-            newPassword: data.newPassword,
-          }),
-        },
-      );
+      const { error } = await authClient.changePassword({
+        currentPassword: formData.currentPassword,
+        newPassword: formData.newPassword,
+        revokeOtherSessions: true,
+      });
 
-      const result = await response.json();
-
-      if (response.ok) {
-        toast.success(result.message || "Password changed successfully");
-        setOpenModal(false);
+      if (error) {
+        toast.error(error.message || "Failed to change password");
       } else {
-        toast.error(result.message || "Failed to change password");
+        toast.success("Password updated successfully");
+        setFormData({ currentPassword: "", newPassword: "", confirmPassword: "" });
       }
     } catch (error) {
-      toast.error("An error occurred. Please try again.");
+      toast.error("An unexpected error occurred");
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <Dialog open={openModal} onOpenChange={setOpenModal}>
-      <Card className="flex h-full flex-col justify-between sm:w-full">
-        <CardHeader>
-          <CardTitle>Change Password</CardTitle>
-          <CardDescription>Change your password here.</CardDescription>
-        </CardHeader>
-        <CardFooter>
-          <DialogTrigger asChild>
-            <Button variant="outline">Change Password</Button>
-          </DialogTrigger>
-        </CardFooter>
-      </Card>
-
-      <DialogContent className="h-fit sm:max-w-[425px]">
-        <DialogHeader>
-          <DialogTitle>Change Password</DialogTitle>
-          <DialogDescription>
-            Make changes to your password here. Click save when you&apos;re
-            done.
-          </DialogDescription>
-        </DialogHeader>
-
-        <form onSubmit={handleSubmit(handleChangePassword)}>
-          <div className="grid gap-2">
-            <div>
-              <Label htmlFor="currentPassword">Current Password</Label>
-              <PasswordField
-                name="currentPassword"
-                register={register}
-                errors={errors}
-                placeholder="Current password"
-                isVisible={currentPasswordVisible}
-                toggleVisibility={() =>
-                  setCurrentPasswordVisible(!currentPasswordVisible)
-                }
-              />
+    <Card className="border-border shadow-none bg-card">
+      <CardHeader>
+        <CardTitle className="text-xl font-serif">Security</CardTitle>
+        <CardDescription>Manage your account password and sessions.</CardDescription>
+      </CardHeader>
+      <CardContent>
+        <form onSubmit={handlePasswordChange} className="space-y-6">
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <Label className="text-[10px] uppercase font-bold text-muted-foreground">Current Password</Label>
+              <div className="relative">
+                <KeyRound className="absolute left-0 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground/40" />
+                <Input 
+                  type="password"
+                  value={formData.currentPassword} 
+                  onChange={(e) => setFormData({...formData, currentPassword: e.target.value})}
+                  className="bg-transparent border-0 border-b border-border rounded-none pl-7 px-0 focus-visible:ring-0 focus-visible:border-primary transition-colors"
+                />
+              </div>
             </div>
-            <div>
-              <Label htmlFor="newPassword">New Password</Label>
-              <PasswordField
-                name="newPassword"
-                register={register}
-                errors={errors}
-                placeholder="New password"
-                isVisible={newPasswordVisible}
-                toggleVisibility={() =>
-                  setNewPasswordVisible(!newPasswordVisible)
-                }
-                onPasswordChange={handlePasswordChange} // Check password strength
-              />
+
+            <div className="space-y-2">
+              <Label className="text-[10px] uppercase font-bold text-muted-foreground">New Password</Label>
+              <div className="relative">
+                <ShieldAlert className="absolute left-0 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground/40" />
+                <Input 
+                  type="password"
+                  value={formData.newPassword} 
+                  onChange={(e) => setFormData({...formData, newPassword: e.target.value})}
+                  className="bg-transparent border-0 border-b border-border rounded-none pl-7 px-0 focus-visible:ring-0 focus-visible:border-primary transition-colors"
+                />
+              </div>
             </div>
-            <div>
-              <Label htmlFor="confirmPassword">Confirm Password</Label>
-              <PasswordField
-                name="confirmPassword"
-                register={register}
-                errors={errors}
-                placeholder="Confirm password"
-                isVisible={confirmPasswordVisible}
-                toggleVisibility={() =>
-                  setConfirmPasswordVisible(!confirmPasswordVisible)
-                }
-              />
+
+            <div className="space-y-2">
+              <Label className="text-[10px] uppercase font-bold text-muted-foreground">Confirm New Password</Label>
+              <div className="relative">
+                <ShieldAlert className="absolute left-0 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground/40" />
+                <Input 
+                  type="password"
+                  value={formData.confirmPassword} 
+                  onChange={(e) => setFormData({...formData, confirmPassword: e.target.value})}
+                  className="bg-transparent border-0 border-b border-border rounded-none pl-7 px-0 focus-visible:ring-0 focus-visible:border-primary transition-colors"
+                />
+              </div>
             </div>
           </div>
 
-          <DialogFooter>
-            <LoadingButton
-              className="mt-4"
-              type="submit"
-              disabled={!passwordMatch || !isStrongPassword || isSubmitting}
-              loading={loading}
-            >
-              Change Password
-            </LoadingButton>
-          </DialogFooter>
+          <Button 
+            type="submit" 
+            disabled={loading}
+            className="w-full bg-foreground text-background hover:opacity-90 transition-all font-medium py-5"
+          >
+            {loading ? "Updating..." : "Update Password"}
+          </Button>
         </form>
-      </DialogContent>
-    </Dialog>
+      </CardContent>
+    </Card>
   );
 }

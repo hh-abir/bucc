@@ -1,6 +1,26 @@
-const mongoose = require('mongoose');
+import mongoose, { Schema, Document, Model } from "mongoose";
 
-const EventSchema = new mongoose.Schema(
+export interface IEvent extends Document {
+  title: string;
+  venue: string;
+  description: string;
+  featuredImage?: string;
+  type: string;
+  needAttendance: boolean;
+  startingDate: Date;
+  endingDate: Date;
+  attendance: number[];
+  prId?: mongoose.Types.ObjectId;
+  allowedMembers: "Any" | "BUCC Members" | "BRACU Students";
+  allowedDepartments: string[];
+  allowedDesignations: string[];
+  notes?: string;
+  registrationLink?: string;
+  createdDate: Date;
+  lastUpdate: Date;
+}
+
+const EventSchema: Schema = new Schema(
   {
     title: {
       type: String,
@@ -35,12 +55,8 @@ const EventSchema = new mongoose.Schema(
       required: true,
     },
     attendance: [Number],
-    prId: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "PR",
-      default: null,
-    },
     allowedMembers: {
+
       type: String,
       enum: ["Any", "BUCC Members", "BRACU Students"],
       required: true,
@@ -59,11 +75,18 @@ const EventSchema = new mongoose.Schema(
       type: String,
       default: "",
     },
+    registrationLink: {
+      type: String,
+      required: false,
+    },
   },
   {
     timestamps: { createdAt: "createdDate", updatedAt: "lastUpdate" },
-  },
+  }
 );
+
 EventSchema.index({ title: "text" });
-const Event = mongoose.models.Event || mongoose.model("Event", EventSchema);
+
+const Event: Model<IEvent> = mongoose.models.Event || mongoose.model<IEvent>("Event", EventSchema);
+
 export default Event;

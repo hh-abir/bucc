@@ -1,4 +1,5 @@
 import mongoose from "mongoose";
+import "./User";
 
 const BlogSchema = new mongoose.Schema({
   title: {
@@ -50,6 +51,7 @@ const BlogSchema = new mongoose.Schema({
   status: {
     type: String,
     default: "draft",
+    enum: ["draft", "pending", "published"],
   },
   lastUpdate: {
     type: Date,

@@ -1,52 +1,61 @@
-import "@/app/globals.css";
-import Sidebar from "@/components/sidebar/Sidebar";
-import ThemeToggler from "@/components/theme-toggler";
-import Providers from "@/util/Providers";
-import type { Metadata } from "next";
-import "@/app/prosemirror.css";
+"use client";
 
-import { Outfit } from "next/font/google";
+import { ThemeToggle } from "@/components/ThemeToggle";
+import { Sidebar } from "@/components/Sidebar";
+import { useUser } from "@/context/UserContext";
+import { useState } from "react";
+import { Menu } from "lucide-react";
 
-const font = Outfit({ subsets: ["latin"] });
+function DashboardHeader({ onMenuClick }: { onMenuClick: () => void }) {
+  const { user, isLoading } = useUser();
+  
+  return (
+    <header className="h-16 flex items-center justify-between md:justify-end px-4 md:px-8 border-b border-border bg-background gap-4 shrink-0">
+      <button 
+        onClick={onMenuClick}
+        className="p-2 hover:bg-muted rounded-md md:hidden text-foreground transition-colors"
+        aria-label="Toggle Menu"
+      >
+        <Menu className="w-5 h-5" />
+      </button>
 
-export const metadata: Metadata = {
-  title: "BRAC University Computer Club | Upgrade Yourself",
-  icons: [
-    {
-      rel: "icon",
-      type: "image/x-icon",
-      url: "/assets/bucc-favicon.ico",
-      media: "(prefers-color-scheme: light)",
-    },
-    {
-      rel: "icon",
-      type: "image/png",
-      url: "/assets/bucc-favicon-light.ico",
-      media: "(prefers-color-scheme: dark)",
-    },
-  ],
-  description:
-    "BRAC University Computer Club (BUCC) is the oldest club of BRAC university founded in 2001.",
-};
+      <div className="flex items-center gap-4">
+        <ThemeToggle />
+        <div className="text-sm text-muted-foreground flex flex-col items-end">
+          {isLoading ? (
+            <span className="animate-pulse bg-muted h-4 w-20 rounded"></span>
+          ) : user ? (
+            <>
+              <span className="font-medium text-foreground text-xs md:text-sm">{user.name}</span>
+              <span className="text-[9px] md:text-[10px] uppercase tracking-wider font-bold text-primary">{user.designation}</span>
+            </>
+          ) : (
+            <span>Guest</span>
+          )}
+        </div>
+      </div>
+    </header>
+  );
+}
 
-export default function RootLayout({
+export default function PortalLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const [isOpen, setIsOpen] = useState(false);
+
   return (
-    <html lang="en">
-      <body className={`flex items-start justify-between ${font.className}`}>
-        <Providers>
-          <Sidebar />
-          <main className="mx-6 min-h-screen w-full md:m-10">
-            <div className="absolute right-3 top-3">
-              <ThemeToggler />
-            </div>
-            {children}
-          </main>
-        </Providers>
-      </body>
-    </html>
+    <div className="flex h-screen bg-background text-foreground font-sans overflow-hidden">
+      <Sidebar isOpen={isOpen} onClose={() => setIsOpen(false)} />
+
+      {/* Main Content Area */}
+      <main className="flex-1 flex flex-col h-full overflow-y-auto relative">
+        <DashboardHeader onMenuClick={() => setIsOpen(true)} />
+        <div className="p-4 md:p-8 max-w-5xl mx-auto w-full">
+          {children}
+        </div>
+      </main>
+    </div>
   );
 }

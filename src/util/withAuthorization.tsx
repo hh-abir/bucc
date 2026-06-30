@@ -19,6 +19,14 @@ const withAuthorization = (
     }
 
     const user = sessionData?.user;
+    const isAlumni = user?.memberStatus === "Alumni";
+    if (isAlumni) {
+      return (
+        <div className="p-8 text-center text-muted-foreground font-serif text-lg mt-20">
+          Alumni do not have permission to view this page.
+        </div>
+      );
+    }
     const userDepartment = user?.buccDepartment || "";
     const userDesignation = user?.designation || "";
 

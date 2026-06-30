@@ -1,118 +1,91 @@
 "use client";
 
-import { login } from "@/actions/login";
-import SpinnerComponent from "@/components/SpinnerComponent";
-import { Input } from "@/components/ui/input";
-import { LoadingButton } from "@/components/ui/loading-button";
-import PasswordField from "@/components/ui/password-field";
-import { useUser } from "@/context/UserContext"; // Import UserContext
-import { loginSchema, LoginSchema } from "@/schemas/loginSchema";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { MailIcon } from "lucide-react";
-import Link from "next/link";
+import { authClient } from "@/lib/auth-client";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 
 export default function Login() {
   const router = useRouter();
-  const { user, isLoading } = useUser();
-  const [passwordVisible, setPasswordVisible] = useState(false);
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const {
-    register,
-    handleSubmit,
-    formState: { errors, isSubmitting },
-  } = useForm<LoginSchema>({
-    resolver: zodResolver(loginSchema),
-  });
-
-  if (isLoading) {
-    return (
-      <div className="flex min-h-screen items-center justify-center">
-        <SpinnerComponent />
-      </div>
-    );
-  }
-
-  // Redirect authenticated user
-  if (user) {
-    router.push("/dashboard");
-    return null; // Prevent further rendering
-  }
-
-  const onSubmit = async (data: LoginSchema) => {
+  const onSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsSubmitting(true);
     try {
-      const response = await login(data);
-      if (response?.error) {
-        toast.error(response.error);
-        return;
+      const { data, error } = await authClient.signIn.email({
+        email,
+        password,
+      });
+      if (error) {
+        toast.error(error.message || "Invalid credentials");
+      } else {
+        toast.success("Login successful!");
+        router.push("/dashboard");
       }
-      toast.success("Login successful!");
-      router.push("/dashboard");
-    } catch (error) {
+    } catch (err) {
       toast.error("An unexpected error occurred");
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
   return (
     <div className="flex min-h-[calc(100vh-140px)] items-center justify-center px-4">
-      <div className="w-full max-w-md space-y-6">
-        <div className="text-center">
-          <h1 className="text-3xl font-bold tracking-tight">Welcome Back</h1>
-          <p className="text-gray-500 dark:text-gray-400">
-            Enter your G-Suite email and password to sign in.
+      <div className="w-full max-w-md space-y-8 bg-card p-8 rounded-lg shadow-sm border border-border">
+        <div className="text-center space-y-2">
+          <h1 className="text-3xl font-serif font-bold tracking-tight text-foreground">Sign In</h1>
+          <p className="text-muted-foreground text-sm">
+            Enter your email and password to access the portal.
           </p>
         </div>
-        <form className="space-y-4" onSubmit={handleSubmit(onSubmit)}>
-          {/* Email Field */}
-          <div className="relative">
-            <Input
-              className="rounded-md pl-10 shadow-sm sm:text-sm"
+        <form className="space-y-4" onSubmit={onSubmit}>
+          <div className="space-y-1">
+            <label className="text-sm font-medium text-foreground" htmlFor="email">Email</label>
+            <input
+              id="email"
+              className="w-full px-3 py-2 border border-border rounded-md bg-background text-foreground focus:outline-none focus:ring-1 focus:ring-ring"
               placeholder="Email address"
               type="email"
-              {...register("email")}
-              error={errors.email?.message} // Display error message if available
-              icon={<MailIcon className="h-4 w-4" />}
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              required
             />
-            {errors.email && (
-              <p className="text-sm text-red-600">{errors.email.message}</p>
-            )}
           </div>
 
-          {/* Password Field */}
-          <PasswordField
-            name="password"
-            register={register}
-            errors={errors}
-            placeholder="Password"
-            isVisible={passwordVisible}
-            toggleVisibility={() => setPasswordVisible(!passwordVisible)}
-          />
-
-          <div className="flex items-center justify-between">
-            <Link
-              className="text-sm font-medium text-gray-900 underline transition-colors hover:text-gray-800 dark:text-gray-50 dark:hover:text-gray-200"
-              href="/reset-password"
-            >
-              Forgot your password?
-            </Link>
-            <Link
-              className="text-sm font-medium text-gray-900 underline transition-colors hover:text-gray-800 dark:text-gray-50 dark:hover:text-gray-200"
-              href="/registration"
-            >
-              Not a member? Register
-            </Link>
+          <div className="space-y-1">
+            <label className="text-sm font-medium text-foreground" htmlFor="password">Password</label>
+            <input
+              id="password"
+              className="w-full px-3 py-2 border border-border rounded-md bg-background text-foreground focus:outline-none focus:ring-1 focus:ring-ring"
+              placeholder="Password"
+              type="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              required
+            />
           </div>
-          <LoadingButton
-            className="w-full"
-            type="submit"
-            disabled={isSubmitting}
-            loading={isSubmitting}
-          >
-            Login
-          </LoadingButton>
+
+          <div className="flex items-center justify-between pt-2">
+            <a href="/reset-password" className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">
+              Forgot password?
+            </a>
+            <a href="/registration" className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">
+              Register here
+            </a>
+          </div>
+          
+          <div className="pt-4">
+            <button
+              className="w-full bg-primary text-primary-foreground py-2 px-4 rounded-md font-medium hover:opacity-90 transition-opacity disabled:opacity-50"
+              type="submit"
+              disabled={isSubmitting}
+            >
+              {isSubmitting ? "Signing in..." : "Sign In"}
+            </button>
+          </div>
         </form>
       </div>
     </div>

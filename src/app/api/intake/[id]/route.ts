@@ -4,12 +4,12 @@ import Intake from "@/model/Intake";
 
 export async function PATCH(
   request: NextRequest,
-  { params }: { params: { id: string } },
+  { params }: { params: Promise<{ id: string }> },
 ) {
   await dbConnect();
 
   try {
-    const { id } = params;
+    const { id } = await params;
     console.log(id)
     if (!id) {
       return NextResponse.json(

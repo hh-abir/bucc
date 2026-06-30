@@ -1,144 +1,135 @@
 import dbConnect from "@/lib/dbConnect";
-import MemberEBAssessment from "@/model/MemberEBAssessment";
-import PreregMemberInfo from "@/model/PreregMemberInfo";
+import EvaluationData from "@/model/EvaluationData";
+import PreRegMember from "@/model/PreRegMember";
 import { NextRequest, NextResponse } from "next/server";
+import { getConfigValue } from "@/helpers/appConfigStore";
 
 export async function POST(request: NextRequest) {
   try {
-    const body = await request.json();
-    const { studentId, gSuiteEmail, name, responseObject, firstChoice } = body;
     await dbConnect();
-    const memberEB = await MemberEBAssessment.findOne({
-      studentId: studentId,
-    });
-    if (memberEB) {
+
+    // SERVER-SIDE GATING: Check if evaluation is open
+    const config: any = await getConfigValue("recruitment_config", { isEvaluationOpen: false });
+    if (!config.isEvaluationOpen) {
       return NextResponse.json(
-        { message: "Evaluation already submitted" },
-        { status: 400 },
+        { message: config.evaluationMessage || "Evaluation is currently closed." },
+        { status: 403 }
       );
     }
-    const memberSaveEB = new MemberEBAssessment({
+
+    const body = await request.json();
+    const { studentId, name, gSuiteEmail, phoneNumber, bracuDepartment, buccDepartment, responseObject } = body;
+
+    // Check if evaluation already submitted
+    const existingEvaluation = await EvaluationData.findOne({ studentId });
+    if (existingEvaluation) {
+      return NextResponse.json(
+        { message: "Evaluation already submitted for this Student ID." },
+        { status: 400 }
+      );
+    }
+
+    const newEvaluation = new EvaluationData({
       studentId,
-      gSuiteEmail,
       name,
+      email: gSuiteEmail,
+      phoneNumber,
+      bracuDepartment,
+      buccDepartment,
       responseObject,
+      status: "Submitted", // NEW: Mark as submitted for the queue
     });
 
-    await memberSaveEB.save();
+    await newEvaluation.save();
 
     return NextResponse.json(
-      { message: "Evaluation submission Successful" },
-      { status: 200 },
+      { message: "Evaluation submitted successfully" },
+      { status: 201 }
     );
   } catch (error: any) {
+    console.error("Evaluation submission error:", error);
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
 }
 
-// export async function GET(request: NextRequest) {
-//   try {
+export async function PATCH(request: NextRequest) {
+  try {
+    const body = await request.json();
+    const { _id, interviewTakenBy, modifiedBy, assignedDepartment, status, comment } = body;
 
-//     const url = new URL(request.url);
-//     const studentID = url.searchParams.get("studentID");
-//     const evaluationID = url.searchParams.get("evaluationID");
+    await dbConnect();
+    const evaluation = await EvaluationData.findById(_id);
 
-//     if (evaluationID) {
+    if (!evaluation) {
+      return NextResponse.json({ message: "Evaluation not found" }, { status: 404 });
+    }
 
-//       const evaluationData = await MemberEBAssessment.findById(evaluationID);
+    evaluation.status = status;
+    evaluation.buccDepartment = assignedDepartment;
+    evaluation.interviewTakenBy = interviewTakenBy;
+    evaluation.comment = comment;
+    evaluation.modifiedBy = modifiedBy;
 
-//       if (evaluationData) {
-//         return NextResponse.json(evaluationData, { status: 200 });
-//       }
-//     }
+    await evaluation.save();
 
-//     if (studentID) {
-
-//       const evaluationData = await MemberEBAssessment.findOne({
-//         studentId: studentID,
-//       });
-
-//       if (evaluationData) {
-
-//         return NextResponse.json(
-//           { message: "Evaluation already submitted" },
-//           { status: 400 },
-//         );
-//       }
-
-//       const preregMemberInfo = await PreregMemberInfo.findOne({
-//         studentId: studentID,
-//       });
-
-//       if (preregMemberInfo) {
-
-//         return NextResponse.json(
-//           { message: "Preregistration completed, proceed to evaluation" },
-//           { status: 200 },
-//         );
-//       }
-
-//       return NextResponse.json(
-//         { message: "You are not preregistered." },
-//         { status: 404 },
-//       );
-//     }
-
-//     return NextResponse.json(
-//       { error: "Invalid request parameters" },
-//       { status: 400 },
-//     );
-//   } catch (error) {
-//     console.error("Error fetching data:", error);
-//     return NextResponse.json(
-//       { error: "Internal Server Error" },
-//       { status: 500 },
-//     );
-//   }
-// }
-
+    return NextResponse.json({ message: "Assessment updated successfully" }, { status: 200 });
+  } catch (error: any) {
+    console.error("Evaluation update error:", error);
+    return NextResponse.json({ error: error.message }, { status: 500 });
+  }
+}
 
 export async function GET(request: NextRequest) {
   try {
     const url = new URL(request.url);
     const studentID = url.searchParams.get("studentID");
+    const gSuiteEmail = url.searchParams.get("gSuiteEmail");
     const evaluationID = url.searchParams.get("evaluationID");
 
     if (evaluationID) {
-      const evaluationData = await MemberEBAssessment.findById(evaluationID);
+      await dbConnect();
+      const evaluationData = await EvaluationData.findById(evaluationID);
       if (evaluationData) {
         return NextResponse.json(evaluationData, { status: 200 });
       }
     }
 
-    if (studentID) {
+    if (studentID && gSuiteEmail) {
       await dbConnect();
-      const evaluationData = await MemberEBAssessment.findOne({ studentId: studentID });
-
-
-      if (evaluationData) {
+      
+      // First check if they already submitted
+      const existingEvaluation = await EvaluationData.findOne({ studentId: studentID });
+      if (existingEvaluation) {
         return NextResponse.json(
           { message: "Evaluation already submitted" },
           { status: 400 }
         );
       }
 
-      const allowedStudentIDs = await PreregMemberInfo.findOne({studentId: studentID});
+      // If not, find their registration data matching both ID and Email
+      const preRegMember = await PreRegMember.findOne({ 
+        studentId: studentID,
+        email: gSuiteEmail
+      });
 
-      if (allowedStudentIDs) {
+      if (preRegMember) {
         return NextResponse.json(
-          { message: "Preregistration completed, proceed to evaluation" },
+          { 
+            message: "Preregistration found", 
+            member: preRegMember 
+          }, 
           { status: 200 }
         );
       } else {
         return NextResponse.json(
-          { message: "Student not preregistered" },
+          { message: "Student record not found with the provided ID and G Suite Email." },
           { status: 403 }
         );
       }
     }
 
     return NextResponse.json(
-      { error: "Invalid request parameters" },
+      { error: "Student ID and G Suite Email are required for verification." },
       { status: 400 }
     );
   } catch (error) {

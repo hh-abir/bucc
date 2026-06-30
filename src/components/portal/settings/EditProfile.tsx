@@ -1,411 +1,245 @@
 "use client";
 
-import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardDescription,
-  CardFooter,
-  CardHeader,
+import { useState, useEffect } from "react";
+import { 
+  Card, 
+  CardContent, 
+  CardHeader, 
   CardTitle,
+  CardDescription 
 } from "@/components/ui/card";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import MultipleSelector, { Option } from "@/components/ui/multiple-selector";
-import {
-  Select,
-  SelectContent,
-  SelectGroup,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import skills from "@/constants/skills";
-import { getProfileData } from "@/server/actions";
-import { useQuery } from "@tanstack/react-query";
-import { CldImage } from "next-cloudinary";
-import { useEffect, useState } from "react";
+import { useUser } from "@/context/UserContext";
 import { toast } from "sonner";
-
-const OPTIONS: Option[] = skills.map((skill) => ({
-  label: skill.label,
-  value: skill.label,
-}));
+import { 
+  User, 
+  Phone, 
+  Mail, 
+  Globe, 
+  Facebook, 
+  Github, 
+  Linkedin, 
+  ShieldCheck,
+  Lock,
+  HeartPulse,
+  Briefcase,
+  Calendar
+} from "lucide-react";
+import MultipleSelector from "@/components/ui/multiple-selector";
+import SKILLS_LIST from "@/constants/skills";
 
 export default function EditProfile() {
-  const { data, refetch } = useQuery({
-    queryKey: ["profile"],
-    queryFn: getProfileData,
-  });
-
-  const initialProfileData = {
-    personalEmail: "",
-    contactNumber: "",
-    profileImage: "",
-    birthDate: "",
-    bloodGroup: "",
-    gender: "",
-    emergencyContact: "",
-    memberSkills: [],
-    memberSocials: {
-      Facebook: "",
-      Linkedin: "",
-      Github: "",
-    },
-  };
-
-  const [showEditModal, setShowEditModal] = useState(false);
-  const [showConfirmationModal, setShowConfirmationModal] = useState(false);
-  const [profileData, setProfileData] = useState(initialProfileData);
+  const { user, refreshUser } = useUser();
+  const [loading, setLoading] = useState(false);
+  const [formData, setFormData] = useState<any>(null);
 
   useEffect(() => {
-    if (data?.user) {
-      const {
-        personalEmail,
-        contactNumber,
-        profileImage,
-        birthDate,
-        bloodGroup,
-        gender,
-        emergencyContact,
-        memberSkills,
-        memberSocials,
-      } = data.user;
-
-      setProfileData({
-        personalEmail,
-        contactNumber,
-        profileImage,
-        birthDate: birthDate && birthDate.split("T")[0],
-        bloodGroup,
-        gender,
-        emergencyContact,
-        memberSkills:
-          memberSkills &&
-          memberSkills.map((skill: any) => ({ label: skill, value: skill })),
-        memberSocials: (memberSocials && {
-          Facebook: memberSocials.Facebook,
-          Linkedin: memberSocials.Linkedin,
-          Github: memberSocials.Github,
-        }) || {
-          Facebook: "",
-          Linkedin: "",
-          Github: "",
-        },
+    if (user) {
+      setFormData({
+        phoneNumber: user.phoneNumber || "",
+        personalEmail: user.personalEmail || "",
+        bloodGroup: user.bloodGroup || "",
+        gender: user.gender || "",
+        emergencyContact: user.emergencyContact || "",
+        memberSkills: user.memberSkills || [],
+        memberSocials: user.memberSocials || { Facebook: "", Github: "", Linkedin: "" },
       });
     }
-  }, [data]);
+  }, [user]);
 
-  const handleChange = (e: any) => {
-    const { target } = e;
-    if (!target) {
-      console.error("Event target is undefined.");
-      return;
-    }
-
-    const { id, value } = target;
-    if (!id) {
-      console.error("Target id is undefined.");
-      return;
-    }
-
-    const [mainId, subId] = id.split(".");
-    if (subId) {
-      setProfileData((prevData: any) => ({
-        ...prevData,
-        [mainId]: {
-          ...prevData[mainId],
-          [subId]: value,
-        },
-      }));
-    } else {
-      setProfileData((prevData) => ({
-        ...prevData,
-        [id]: value,
-      }));
-    }
-  };
-
-  const handleSkillsChange = (selectedOptions: Option[]) => {
-    setProfileData((prevData: any) => ({
-      ...prevData,
-      memberSkills: selectedOptions,
-    }));
-  };
-
-  const handleConfirmation = () => {
-    setShowConfirmationModal(true);
-    setShowEditModal(false);
-  };
-
-  const handleSaveChanges = async () => {
+  const handleUpdate = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
     try {
-      const memberData: any = {
-        ...profileData,
-        memberSkills: profileData.memberSkills.map(
-          (skill: Option) => skill.value,
-        ),
-      };
+      const res = await fetch(`/api/member?id=${user?.id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(formData),
+      });
 
-      const res = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/users/profile`,
-        {
-          method: "PATCH",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify(memberData),
-        },
-      );
       if (res.ok) {
-        toast.success("Profile updated successfully!");
-        setShowConfirmationModal(false);
-        refetch();
+        toast.success("Profile updated successfully");
+        await refreshUser();
       } else {
-        toast.error("An error occurred. Please try again later.");
+        const err = await res.json();
+        toast.error(err.error || "Failed to update profile");
       }
     } catch (error) {
-      console.error(error);
-      toast.error("An error occurred. Please try again later.");
+      toast.error("An error occurred");
+    } finally {
+      setLoading(false);
     }
   };
 
+  if (!formData || !user) return null;
+
   return (
-    <div>
-      <Dialog open={showEditModal} onOpenChange={setShowEditModal}>
-        <Card className="flex h-full flex-col justify-between sm:w-full">
-          <CardHeader>
-            <CardTitle>Edit Profile</CardTitle>
-            <CardDescription>Update your personal details.</CardDescription>
-          </CardHeader>
-          <CardFooter>
-            <DialogTrigger asChild>
-              <Button variant="outline" onClick={() => setShowEditModal(true)}>
-                Edit Profile
-              </Button>
-            </DialogTrigger>
-          </CardFooter>
-        </Card>
-        <DialogContent className="max-h-screen max-w-sm overflow-y-scroll sm:max-w-md">
-          <DialogHeader>
-            <DialogTitle>Edit profile</DialogTitle>
-            <DialogDescription>
-              Make changes to your profile here. Click save when you&apos;re
-              done.
-            </DialogDescription>
-          </DialogHeader>
-          <div className="grid grid-cols-1 gap-4 py-4">
-            <div className="flex flex-col items-center justify-center">
-              <div className="relative mb-4 h-24 w-24">
-                {profileData.profileImage ? (
-                  <CldImage
-                    width="960"
-                    height="600"
-                    src={profileData.profileImage}
-                    sizes="100vw"
-                    alt={`Profile Image of ${name}`}
-                    className="h-full w-full rounded-full object-cover"
+    <div className="space-y-8 lg:col-span-2">
+      {/* 1. Official Records (Read-Only) */}
+      <Card className="border-border shadow-none bg-muted/20">
+        <CardHeader className="pb-4">
+          <div className="flex items-center gap-2 text-muted-foreground">
+            <Lock className="w-3.5 h-3.5" />
+            <CardTitle className="text-lg font-serif">Official Identity</CardTitle>
+          </div>
+          <CardDescription className="text-[10px] uppercase tracking-widest">System-managed records. Non-editable.</CardDescription>
+        </CardHeader>
+        <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-6">
+          <ReadOnlyField label="Full Name" value={user.name} icon={<User className="w-3 h-3" />} />
+          <ReadOnlyField label="Student ID" value={user.studentId} icon={<ShieldCheck className="w-3 h-3" />} />
+          <ReadOnlyField label="G-Suite Email" value={user.email} icon={<Mail className="w-3 h-3" />} />
+          <ReadOnlyField label="BUCC Department" value={user.buccDepartment} icon={<Briefcase className="w-3 h-3" />} />
+          <ReadOnlyField label="Designation" value={user.designation} icon={<Briefcase className="w-3 h-3" />} />
+          <ReadOnlyField label="Joined BUCC" value={user.joinedBucc || "N/A"} icon={<Calendar className="w-3 h-3" />} />
+          <ReadOnlyField label="Joined BRACU" value={user.joinedBracu || "N/A"} icon={<Calendar className="w-3 h-3" />} />
+        </CardContent>
+        <div className="px-6 pb-4">
+          <p className="text-[9px] text-muted-foreground/60 italic font-light">
+            * Contact HR department to request changes to official records.
+          </p>
+        </div>
+      </Card>
+
+      {/* 2. Personal Profile (Editable) */}
+      <Card className="border-border shadow-none bg-card">
+        <CardHeader>
+          <CardTitle className="text-xl font-serif">Personal Information</CardTitle>
+          <CardDescription>Update your contact and professional presence.</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <form onSubmit={handleUpdate} className="space-y-10">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+              <div className="space-y-2">
+                <Label className="text-[10px] uppercase font-bold text-muted-foreground">Phone Number</Label>
+                <Input 
+                  value={formData.phoneNumber} 
+                  onChange={(e) => setFormData({...formData, phoneNumber: e.target.value})}
+                  className="bg-transparent border-0 border-b border-border rounded-none px-0 focus-visible:ring-0 focus-visible:border-primary transition-colors text-lg"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label className="text-[10px] uppercase font-bold text-muted-foreground">Personal Email</Label>
+                <Input 
+                  value={formData.personalEmail} 
+                  onChange={(e) => setFormData({...formData, personalEmail: e.target.value})}
+                  className="bg-transparent border-0 border-b border-border rounded-none px-0 focus-visible:ring-0 focus-visible:border-primary transition-colors text-lg"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label className="text-[10px] uppercase font-bold text-muted-foreground">Emergency Contact</Label>
+                <Input 
+                  value={formData.emergencyContact} 
+                  onChange={(e) => setFormData({...formData, emergencyContact: e.target.value})}
+                  className="bg-transparent border-0 border-b border-border rounded-none px-0 focus-visible:ring-0 focus-visible:border-primary transition-colors text-lg"
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label className="text-[10px] uppercase font-bold text-muted-foreground">Blood Group</Label>
+                  <Input 
+                    value={formData.bloodGroup} 
+                    onChange={(e) => setFormData({...formData, bloodGroup: e.target.value})}
+                    placeholder="e.g. A+"
+                    className="bg-transparent border-0 border-b border-border rounded-none px-0 focus-visible:ring-0 focus-visible:border-primary transition-colors text-lg"
                   />
-                ) : (
-                  <div className="flex h-full w-full items-center justify-center rounded-full bg-gray-300">
-                    <span className="text-gray-700">No Image</span>
-                  </div>
-                )}
+                </div>
+                <div className="space-y-2">
+                  <Label className="text-[10px] uppercase font-bold text-muted-foreground">Gender</Label>
+                  <Input 
+                    value={formData.gender} 
+                    onChange={(e) => setFormData({...formData, gender: e.target.value})}
+                    className="bg-transparent border-0 border-b border-border rounded-none px-0 focus-visible:ring-0 focus-visible:border-primary transition-colors text-lg"
+                  />
+                </div>
               </div>
             </div>
-            <div className="col-span-1">
-              <Label htmlFor="personalEmail" className="text-right">
-                Personal Email
-              </Label>
-              <Input
-                id="personalEmail"
-                type="email"
-                value={profileData.personalEmail}
-                onChange={handleChange}
-              />
-            </div>
-            <div className="col-span-1">
-              <Label htmlFor="contactNumber" className="text-right">
-                Contact Number
-              </Label>
-              <Input
-                id="contactNumber"
-                value={profileData.contactNumber}
-                onChange={handleChange}
-              />
-            </div>
-            <div className="col-span-1">
-              <Label htmlFor="birthDate" className="text-right">
-                Birthday
-              </Label>
-              <Input
-                id="birthDate"
-                type="date"
-                value={profileData.birthDate?.split("T")[0]}
-                onChange={handleChange}
-              />
-            </div>
-            <div className="col-span-1">
-              <Label htmlFor="bloodGroup" className="text-right">
-                Blood Group
-              </Label>
-              <Select
-                value={profileData.bloodGroup}
-                onValueChange={(value) =>
-                  setProfileData((prevData) => ({
-                    ...prevData,
-                    bloodGroup: value,
-                  }))
-                }
-              >
-                <SelectTrigger className="">
-                  <SelectValue placeholder="Select blood group" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectGroup>
-                    <SelectItem value="A+">A+ (ve)</SelectItem>
-                    <SelectItem value="A-">A- (ve)</SelectItem>
-                    <SelectItem value="B+">B+ (ve)</SelectItem>
-                    <SelectItem value="B-">B- (ve)</SelectItem>
-                    <SelectItem value="AB+">AB+ (ve)</SelectItem>
-                    <SelectItem value="AB-">AB- (ve)</SelectItem>
-                    <SelectItem value="O+">O+ (ve)</SelectItem>
-                    <SelectItem value="O-">O- (ve)</SelectItem>
-                  </SelectGroup>
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="col-span-1">
-              <Label htmlFor="gender" className="text-right">
-                Gender
-              </Label>
-              <Select
-                value={profileData.gender}
-                onValueChange={(value) =>
-                  setProfileData((prevData) => ({
-                    ...prevData,
-                    gender: value,
-                  }))
-                }
-              >
-                <SelectTrigger className="">
-                  <SelectValue placeholder="Select gender" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectGroup>
-                    <SelectItem value="Male">Male</SelectItem>
-                    <SelectItem value="Female">Female</SelectItem>
-                    <SelectItem value="Prefer not to say">
-                      Prefer not to say
-                    </SelectItem>
-                  </SelectGroup>
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="col-span-1">
-              <Label htmlFor="emergencyContact" className="text-right">
-                Emergency Contact
-              </Label>
-              <Input
-                id="emergencyContact"
-                value={profileData.emergencyContact}
-                onChange={handleChange}
-              />
-            </div>
-            <div className="col-span-1">
-              <Label htmlFor="memberSkills" className="text-right">
-                Skills
-              </Label>
-              <MultipleSelector
-                defaultOptions={OPTIONS}
-                value={profileData.memberSkills}
-                placeholder="Add your skills..."
-                onChange={handleSkillsChange}
-                creatable
-                emptyIndicator={
-                  <p className="text-center text-lg leading-10 text-gray-600 dark:text-gray-400">
-                    No results found.
-                  </p>
-                }
-              />
-            </div>
-            <div className="col-span-1">
-              <Label htmlFor="memberSocials.Facebook" className="text-right">
-                Facebook
-              </Label>
-              <Input
-                id="memberSocials.Facebook"
-                value={profileData.memberSocials.Facebook}
-                onChange={handleChange}
-              />
-            </div>
-            <div className="col-span-1">
-              <Label htmlFor="memberSocials.Linkedin" className="text-right">
-                LinkedIn
-              </Label>
-              <Input
-                id="memberSocials.Linkedin"
-                value={profileData.memberSocials.Linkedin}
-                onChange={handleChange}
-              />
-            </div>
-            <div className="col-span-1">
-              <Label htmlFor="memberSocials.Github" className="text-right">
-                GitHub
-              </Label>
-              <Input
-                id="memberSocials.Github"
-                value={profileData.memberSocials.Github}
-                onChange={handleChange}
-              />
-            </div>
-          </div>
-          <DialogFooter className="flex items-end">
-            <div className="flex flex-row gap-2">
-              <Button variant="outline" onClick={() => setShowEditModal(false)}>
-                Cancel
-              </Button>
-              <Button onClick={handleConfirmation}>Save Changes</Button>
-            </div>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
 
-      <Dialog
-        open={showConfirmationModal}
-        onOpenChange={setShowConfirmationModal}
-      >
-        <DialogContent className="h-fit max-w-sm rounded-md sm:max-w-md">
-          <DialogHeader>
-            <DialogTitle>Confirm Changes</DialogTitle>
-            <DialogDescription>
-              Are you sure you want to save the changes?
-            </DialogDescription>
-          </DialogHeader>
-          <DialogFooter className="flex items-end">
-            <div className="flex flex-row gap-2">
-              <Button onClick={handleSaveChanges} className="w-full">
-                Save
-              </Button>
-              <Button
-                variant="outline"
-                onClick={() => setShowConfirmationModal(false)}
-                className="w-full"
-              >
-                Cancel
-              </Button>
+            {/* Skills & Socials */}
+            <div className="space-y-8 pt-4 border-t border-border">
+              <div className="space-y-2">
+                <Label className="text-[10px] uppercase font-bold text-muted-foreground">Expertise & Skills</Label>
+                <MultipleSelector
+                  value={(formData.memberSkills || []).map((s: string) => ({ label: s, value: s }))}
+                  onChange={(options) => setFormData({...formData, memberSkills: options.map(o => o.value)})}
+                  defaultOptions={SKILLS_LIST}
+                  placeholder="Select or search skills..."
+                  className="bg-transparent border-0 border-b border-border rounded-none px-0 min-h-[40px]"
+                  badgeClassName="bg-primary/10 text-primary border-primary/20"
+                />
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6 pt-2">
+                  <div className="space-y-1.5">
+                    <Label className="text-[10px] uppercase font-bold text-muted-foreground flex items-center gap-2">
+                      <Facebook className="w-3 h-3" /> Facebook
+                    </Label>
+                    <Input 
+                      value={formData.memberSocials.Facebook || ""} 
+                      onChange={(e) => setFormData({
+                        ...formData, 
+                        memberSocials: { ...formData.memberSocials, Facebook: e.target.value }
+                      })}
+                      placeholder="Username/URL"
+                      className="bg-transparent border-0 border-b border-border rounded-none px-0 h-9 text-xs"
+                    />
+                  </div>
+                  <div className="space-y-1.5">
+                    <Label className="text-[10px] uppercase font-bold text-muted-foreground flex items-center gap-2">
+                      <Github className="w-3 h-3" /> Github
+                    </Label>
+                    <Input 
+                      value={formData.memberSocials.Github || ""} 
+                      onChange={(e) => setFormData({
+                        ...formData, 
+                        memberSocials: { ...formData.memberSocials, Github: e.target.value }
+                      })}
+                      placeholder="Username/URL"
+                      className="bg-transparent border-0 border-b border-border rounded-none px-0 h-9 text-xs"
+                    />
+                  </div>
+                  <div className="space-y-1.5">
+                    <Label className="text-[10px] uppercase font-bold text-muted-foreground flex items-center gap-2">
+                      <Linkedin className="w-3 h-3" /> LinkedIn
+                    </Label>
+                    <Input 
+                      value={formData.memberSocials.Linkedin || ""} 
+                      onChange={(e) => setFormData({
+                        ...formData, 
+                        memberSocials: { ...formData.memberSocials, Linkedin: e.target.value }
+                      })}
+                      placeholder="Username/URL"
+                      className="bg-transparent border-0 border-b border-border rounded-none px-0 h-9 text-xs"
+                    />
+                  </div>
+                </div>
             </div>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+
+            <Button 
+              type="submit" 
+              disabled={loading}
+              className="w-full bg-foreground text-background hover:opacity-90 transition-all font-medium py-6"
+            >
+              {loading ? "Updating Profile..." : "Save Profile Details"}
+            </Button>
+          </form>
+        </CardContent>
+      </Card>
+    </div>
+  );
+}
+
+function ReadOnlyField({ label, value, icon }: { label: string, value: string, icon: React.ReactNode }) {
+  return (
+    <div className="space-y-1.5">
+      <p className="text-[10px] uppercase font-bold text-muted-foreground/60 flex items-center gap-1.5">
+        {icon} {label}
+      </p>
+      <p className="text-md font-medium text-foreground/80 border-b border-border/40 pb-1">{value}</p>
     </div>
   );
 }

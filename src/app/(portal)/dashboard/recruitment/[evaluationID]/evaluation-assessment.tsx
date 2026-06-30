@@ -1,3 +1,5 @@
+"use client";
+
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -11,47 +13,33 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
-import departments from "@/constants/departments";
+import { departmentsInfo } from "@/constants/departments";
 import EBs from "@/constants/ebs";
 import { useSession } from "next-auth/react";
 import { useParams } from "next/navigation";
 import { useState } from "react";
 import { toast } from "sonner";
 
-const OPTIONS: Option[] = EBs.map((eb) => ({
-  label: eb.nickName,
-  value: eb.nickName,
+const EB_OPTIONS: Option[] = EBs.map((eb: any) => ({
+  label: eb.fullName,
+  value: eb.fullName,
 }));
 
 export default function EvaluationAssessment({ evaluationData }: any) {
   const { data: session } = useSession();
   const params = useParams();
-
   const evaluationID = params.evaluationID;
+
   const [loading, setLoading] = useState(false);
-  const [department, setDepartment] = useState(
-    evaluationData.buccDepartment || "",
-  );
-  const [status, setStatus] = useState(evaluationData.status || "");
+  const [department, setDepartment] = useState(evaluationData.buccDepartment || "");
+  const [status, setStatus] = useState(evaluationData.status || "Pending");
   const [comment, setComment] = useState(evaluationData.comment || "");
   const [selectedEBs, setSelectedEBs] = useState<Option[]>(
-    evaluationData.interviewTakenBy.map((eb: string) => ({
+    evaluationData.interviewTakenBy?.map((eb: string) => ({
       label: eb,
       value: eb,
-    })) || [],
+    })) || []
   );
-
-  const handleDepartmentChange = (value: string) => {
-    setDepartment(value);
-  };
-
-  const handleStatusChange = (value: string) => {
-    setStatus(value);
-  };
-
-  const handleCommentChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
-    setComment(e.target.value);
-  };
 
   async function submitAssessment() {
     setLoading(true);
@@ -65,128 +53,102 @@ export default function EvaluationAssessment({ evaluationData }: any) {
         comment,
       };
 
-      const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/ebassessment`,
-        {
-          method: "PATCH",
-          body: JSON.stringify(assessmentData),
-          headers: {
-            "Content-Type": "application/json",
-          },
-        },
-      );
+      const response = await fetch(`/api/evaluation`, {
+        method: "PATCH",
+        body: JSON.stringify(assessmentData),
+        headers: { "Content-Type": "application/json" },
+      });
 
-      const data = await response.json();
       if (response.ok) {
-        setLoading(false);
-        toast.success("Assessment added successfully.");
+        toast.success("Assessment updated successfully.");
       } else {
-        toast.error("Error submitting assessment:");
+        const err = await response.json();
+        toast.error(err.message || "Failed to update assessment.");
       }
     } catch (error) {
-      toast.error("An error occurred while submitting the assessment.");
+      toast.error("An unexpected error occurred.");
+    } finally {
+      setLoading(false);
     }
   }
 
   return (
-    <Card className="top-2 md:sticky">
-      <CardContent className="py-6">
-        <div className="mb-4">
-          <Label htmlFor="studentId" className="mb-2 block font-bold">
-            Student ID
-          </Label>
-          <Input
-            type="text"
-            id="studentId"
-            value={evaluationData.studentId}
-            readOnly
-            className="w-full rounded px-3 py-2 dark:bg-black/10"
-          />
-        </div>
-        <div className="mb-4">
-          <Label htmlFor="studentName" className="mb-2 block font-bold">
-            Student Name
-          </Label>
-          <Input
-            type="text"
-            id="studentName"
-            value={evaluationData.name}
-            readOnly
-            className="w-full rounded px-3 py-2 dark:bg-black/10"
-          />
+    <Card className="bg-card border-border shadow-none">
+      <CardContent className="p-6 space-y-6">
+        <div className="space-y-4">
+          <div className="space-y-1.5">
+            <Label className="text-xs font-bold uppercase tracking-widest text-muted-foreground">Status</Label>
+            <Select value={status} onValueChange={setStatus}>
+              <SelectTrigger className="w-full h-10 bg-transparent border-0 border-b border-border rounded-none px-0 focus:ring-0">
+                <SelectValue placeholder="Select Status" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="Pending">Pending (Post-Interview)</SelectItem>
+                <SelectItem value="Accepted">Accepted</SelectItem>
+                <SelectItem value="Rejected">Rejected</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div className="space-y-1.5">
+            <Label className="text-xs font-bold uppercase tracking-widest text-muted-foreground">Assign Department</Label>
+            <Select value={department} onValueChange={setDepartment}>
+              <SelectTrigger className="w-full h-10 bg-transparent border-0 border-b border-border rounded-none px-0 focus:ring-0">
+                <SelectValue placeholder="Select Department" />
+              </SelectTrigger>
+              <SelectContent>
+                {departmentsInfo.map((dept) => (
+                  <SelectItem key={dept.name} value={dept.name}>
+                    {dept.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div className="space-y-1.5">
+            <Label className="text-xs font-bold uppercase tracking-widest text-muted-foreground">Interviewers</Label>
+            <MultipleSelector
+              value={selectedEBs}
+              onChange={setSelectedEBs}
+              defaultOptions={EB_OPTIONS}
+              placeholder="Type to search EBs..."
+              emptyIndicator={
+                <p className="text-center text-sm leading-10 text-muted-foreground">
+                  No EB found.
+                </p>
+              }
+              className="bg-transparent border-0 border-b border-border rounded-none px-0 min-h-[40px] focus-within:border-primary transition-colors"
+              badgeClassName="bg-primary/10 text-primary border-primary/20 hover:bg-primary/20"
+            />
+            <p className="text-[10px] text-muted-foreground mt-1">Select multiple members who conducted the interview.</p>
+          </div>
+
+          <div className="space-y-1.5">
+            <Label className="text-xs font-bold uppercase tracking-widest text-muted-foreground">Admin Comments</Label>
+            <Textarea
+              value={comment}
+              onChange={(e) => setComment(e.target.value)}
+              placeholder="Internal notes..."
+              className="min-h-[250px] bg-transparent border border-border rounded-sm focus-visible:ring-0 focus-visible:border-primary transition-colors text-sm resize-y p-3"
+            />
+          </div>
         </div>
 
-        <div className="mb-4">
-          <Label htmlFor="interviewTakenBy" className="mb-2 block font-bold">
-            Interview Taken By
-          </Label>
-          <MultipleSelector
-            creatable
-            value={selectedEBs}
-            onChange={setSelectedEBs}
-            defaultOptions={OPTIONS}
-            commandProps={{
-              className: "w-full rounded dark:bg-black/10",
-            }}
-            emptyIndicator={
-              <p className="text-center text-lg leading-10 text-gray-600 dark:text-gray-400">
-                no results found.
-              </p>
-            }
-          />
-        </div>
-
-        <div className="mb-4">
-          <Label htmlFor="assignedDepartment" className="mb-2 block font-bold">
-            Assigned Department
-          </Label>
-          <Select onValueChange={handleDepartmentChange}>
-            <SelectTrigger className="w-full rounded px-4 py-2 dark:bg-black/10">
-              <SelectValue placeholder={department} />
-            </SelectTrigger>
-            <SelectContent>
-              {departments.slice(2).map((department) => (
-                <SelectItem key={department.title} value={department.title}>
-                  {department.title}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-        <div className="mb-4">
-          <Label htmlFor="status" className="mb-2 block font-bold">
-            Status
-          </Label>
-          <Select onValueChange={handleStatusChange}>
-            <SelectTrigger className="w-full rounded px-4 py-2 dark:bg-black/10">
-              <SelectValue placeholder={status} />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="Pending">Pending</SelectItem>
-              <SelectItem value="Accepted">Accepted</SelectItem>
-              <SelectItem value="Rejected">Rejected</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
-        <div className="mb-4">
-          <Label htmlFor="comment" className="mb-2 block font-bold">
-            Comment
-          </Label>
-          <Textarea
-            id="comment"
-            value={comment}
-            onChange={handleCommentChange}
-            className="w-full rounded px-3 py-2 dark:bg-black/10"
-          ></Textarea>
-        </div>
         <LoadingButton
           onClick={submitAssessment}
           disabled={loading}
           loading={loading}
-          className="w-full"
+          className="w-full bg-foreground text-background py-6 font-medium transition-all hover:opacity-90 active:scale-[0.98]"
         >
-          Submit
+          Update Assessment
         </LoadingButton>
+
+        {evaluationData.modifiedBy && (
+          <p className="text-[10px] text-center text-muted-foreground italic">
+            Last modified by {evaluationData.modifiedBy}
+          </p>
+        )}
       </CardContent>
     </Card>
   );

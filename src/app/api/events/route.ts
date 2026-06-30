@@ -1,112 +1,34 @@
-import { hasAuth } from "@/helpers/hasAuth";
+import { auth } from "@/lib/auth";
 import dbConnect from "@/lib/dbConnect";
 import Event from "@/model/Event";
-import { NextRequest, NextResponse } from "next/server";
+import { canManageEvents } from "@/lib/permissions";
+import { NextResponse } from "next/server";
 
-const permittedDesignations = ["Director", "Assistant Director"];
-const permittedDepartments = ["Press Release and Publications"];
-
-export async function POST(request: NextRequest) {
+export async function GET() {
   await dbConnect();
-
-  const { session, isPermitted } = await hasAuth(
-    permittedDesignations,
-    permittedDepartments,
-  );
-
-  if (!session) {
-    return NextResponse.json(
-      { message: "You are not authorized to create events" },
-      { status: 401 },
-    );
-  }
-
-  let body;
   try {
-    body = await request.json();
-  } catch (err) {
-    return NextResponse.json(
-      { error: "Invalid or missing JSON body" },
-      { status: 400 },
-    );
-  }
-
-  try {
-    const {
-      title,
-      venue,
-      description,
-      type,
-      featuredImage,
-      needAttendance,
-      startingDate,
-      endingDate,
-      allowedMembers,
-      allowedDepartments,
-      allowedDesignations,
-      notes,
-      attendance, // <-- receive attendance from body
-    } = body;
-
-    if (
-      !title ||
-      !venue ||
-      !description ||
-      !type ||
-      !startingDate ||
-      !endingDate ||
-      !allowedMembers
-    ) {
-      return NextResponse.json(
-        { error: "Missing required fields" },
-        { status: 400 },
-      );
-    }
-
-    // Optional: Validate attendance
-    if (
-      attendance &&
-      (!Array.isArray(attendance) ||
-        !attendance.every((a) => typeof a === "number"))
-    ) {
-      return NextResponse.json(
-        { error: "Attendance must be an array of numbers" },
-        { status: 400 },
-      );
-    }
-
-    const newEvent = new Event({
-      title,
-      venue,
-      description,
-      type,
-      needAttendance: needAttendance ?? false,
-      startingDate: new Date(startingDate),
-      endingDate: new Date(endingDate),
-      allowedMembers,
-      featuredImage: featuredImage || null,
-      allowedDepartments,
-      allowedDesignations,
-      notes: notes || "",
-      attendance: attendance || [], // <-- set attendance if provided, otherwise empty
-      prId: null, // initially no PR attached
-    });
-
-    const savedEvent = await newEvent.save();
-
-    return NextResponse.json(savedEvent, { status: 201 });
-  } catch (error: any) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    const events = await Event.find({}).sort({ startingDate: -1 });
+    return NextResponse.json(events);
+  } catch (error) {
+    return NextResponse.json({ error: "Failed to fetch events" }, { status: 500 });
   }
 }
 
-export async function GET() {
-  try {
-    await dbConnect();
+export async function POST(request: Request) {
+  const session = await auth.api.getSession({
+    headers: request.headers,
+  });
 
-    const events = await Event.find().sort({ createdDate: -1 }); // Sort newest first
-    return NextResponse.json(events, { status: 200 });
+  if (!session || !canManageEvents(session.user as any)) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 403 });
+  }
+
+  await dbConnect();
+  try {
+    const body = await request.json();
+    const newEvent = await Event.create(body);
+    return NextResponse.json(newEvent, { status: 201 });
   } catch (error: any) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    return NextResponse.json({ error: error.message || "Failed to create event" }, { status: 400 });
   }
 }

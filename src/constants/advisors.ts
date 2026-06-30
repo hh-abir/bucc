@@ -1,6 +1,6 @@
-import coAdvisor2Image from "/public/images/people/advisors/Ateya-Ahmed-Subarna.jpeg";
-import advisorImage from "/public/images/people/advisors/Md-Tawhid-Anwar.jpg";
-import coAdvisor1Image from "/public/images/people/advisors/Arif-Shakil.jpeg";
+const coAdvisor2Image = "/images/people/advisors/Ateya-Ahmed-Subarna.jpeg";
+const advisorImage = "/images/people/advisors/Md-Tawhid-Anwar.jpg";
+const coAdvisor1Image = "/images/people/advisors/Arif-Shakil.jpeg";
 
 const advisorsData = [
   {

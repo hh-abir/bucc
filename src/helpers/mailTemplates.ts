@@ -26,11 +26,11 @@ Please verify your email by clicking the link below:
 ${process.env.DOMAIN_URL}${process.env.NEXT_PUBLIC_API_URL}/users/verify?${verifyToken}`;
 }
 
-function resetMail(name: String, resetToken: String) {
+function resetMail(resetToken: String) {
   return `
-    Dear ${name},
+    Dear user,
     Please reset your password by clicking the link below:
-    ${process.env.DOMAIN_URL}/reset-password?token=${resetToken}`;
+    ${resetToken}`;
 }
 
 function sendVerifyToken(name: String, verifyToken: String) {
