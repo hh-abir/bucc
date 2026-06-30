@@ -179,11 +179,6 @@ const Footer = () => {
             <p className="text-[10px] font-bold text-muted-foreground/40 uppercase tracking-widest">
               &copy; {currentYear} BRAC University Computer Club. All Rights Reserved.
             </p>
-            <div className="h-px w-8 bg-border hidden md:block" />
-            <div className="flex gap-6">
-              <Link href="/under-construction" className="text-[10px] font-bold text-muted-foreground/40 uppercase tracking-widest hover:text-foreground transition-colors">Privacy</Link>
-              <Link href="/under-construction" className="text-[10px] font-bold text-muted-foreground/40 uppercase tracking-widest hover:text-foreground transition-colors">Terms</Link>
-            </div>
           </div>
           
           <div className="text-center md:text-right space-y-1">
