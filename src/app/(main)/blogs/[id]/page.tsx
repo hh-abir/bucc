@@ -59,7 +59,7 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
       authors: [blog.author?.authorName || "BUCC Member"],
       images: [
         {
-          url: blog.featuredImage || "/images/cover.jpeg",
+          url: blog.featuredImage || "/images/cover.png",
           width: 1200,
           height: 630,
           alt: blog.title,
@@ -70,7 +70,7 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
       card: "summary_large_image",
       title: blog.title,
       description: blog.description,
-      images: [blog.featuredImage || "/images/cover.jpeg"],
+      images: [blog.featuredImage || "/images/cover.png"],
     },
   };
 }

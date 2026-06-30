@@ -55,7 +55,7 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
       type: "website",
       images: [
         {
-          url: project.coverImage || "/images/cover.jpeg",
+          url: project.coverImage || "/images/cover.png",
           width: 1200,
           height: 630,
           alt: project.title,
@@ -66,7 +66,7 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
       card: "summary_large_image",
       title: project.title,
       description: project.shortDescription,
-      images: [project.coverImage || "/images/cover.jpeg"],
+      images: [project.coverImage || "/images/cover.png"],
     },
   };
 }

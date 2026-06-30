@@ -32,7 +32,7 @@ const Footer = () => {
     ],
     university: [
       { name: "BRAC University", href: "https://www.bracu.ac.bd/" },
-      { name: "Student Portal (UIS)", href: "https://usis.bracu.ac.bd/" },
+      { name: "Student Portal (Connect)", href: "https://connect.bracu.ac.bd/" },
       { name: "e-Learning (Moodle)", href: "https://buclms.bracu.ac.bd/" },
       { name: "Ayesha Abed Library", href: "https://library.bracu.ac.bd/" },
       { name: "CSE Department", href: "https://www.bracu.ac.bd/academics/departments/computer-science-and-engineering" },
@@ -43,10 +43,10 @@ const Footer = () => {
     })),
     social: [
       { name: "Facebook", href: "https://www.facebook.com/BRACUCC", icon: Facebook },
-      { name: "LinkedIn", href: "https://www.linkedin.com/company/bracu-computer-club/", icon: Linkedin },
-      { name: "GitHub", href: "https://github.com/BUCC-Official", icon: Github },
-      { name: "Instagram", href: "https://www.instagram.com/bucc_official/", icon: Instagram },
-      { name: "YouTube", href: "https://www.youtube.com/@BUCCOfficial", icon: Youtube },
+      { name: "LinkedIn", href: "https://www.linkedin.com/company/bracucc", icon: Linkedin },
+      { name: "GitHub", href: "https://github.com/buccbracu", icon: Github },
+      { name: "Instagram", href: "https://www.instagram.com/bracucc/", icon: Instagram },
+      { name: "YouTube", href: "https://www.youtube.com/@bracucc", icon: Youtube },
     ],
   };
 
@@ -141,23 +141,23 @@ const Footer = () => {
               <div className="flex gap-4 text-sm text-muted-foreground font-light leading-relaxed">
                 <MapPin className="w-5 h-5 shrink-0 text-muted-foreground/40" />
                 <p>
-                  Club Room: UB20401<br />
                   BRAC University New Campus<br />
-                  Kha 226, Bir Uttam Rafiqul Islam Ave, Badda, Dhaka 1212
+                  Kha 224 Pragati Sarani, Merul Badda<br />
+                  Dhaka 1212, Bangladesh
                 </p>
               </div>
               
               <div className="space-y-4">
                 <a 
-                  href="mailto:info.bucc@g.bracu.ac.bd"
+                  href="mailto:marketing.bucc@g.bracu.ac.bd"
                   className="flex items-center gap-4 text-sm text-muted-foreground hover:text-foreground transition-colors font-light"
                 >
                   <Mail className="w-5 h-5 shrink-0 text-muted-foreground/40" />
-                  <span className="break-all">info.bucc@g.bracu.ac.bd</span>
+                  <span className="break-all">For Business: marketing.bucc@g.bracu.ac.bd</span>
                 </a>
                 <div className="flex items-center gap-4 text-sm text-muted-foreground font-light">
                   <Phone className="w-5 h-5 shrink-0 text-muted-foreground/40" />
-                  <span>+880 1712-345678 (Club Room)</span>
+                  <span>+8801732644303</span>
                 </div>
                 <a 
                   href="https://www.bracu.ac.bd"
@@ -179,11 +179,6 @@ const Footer = () => {
             <p className="text-[10px] font-bold text-muted-foreground/40 uppercase tracking-widest">
               &copy; {currentYear} BRAC University Computer Club. All Rights Reserved.
             </p>
-            <div className="h-px w-8 bg-border hidden md:block" />
-            <div className="flex gap-6">
-              <Link href="/under-construction" className="text-[10px] font-bold text-muted-foreground/40 uppercase tracking-widest hover:text-foreground transition-colors">Privacy</Link>
-              <Link href="/under-construction" className="text-[10px] font-bold text-muted-foreground/40 uppercase tracking-widest hover:text-foreground transition-colors">Terms</Link>
-            </div>
           </div>
           
           <div className="text-center md:text-right space-y-1">

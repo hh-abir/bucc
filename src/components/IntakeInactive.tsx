@@ -70,7 +70,7 @@ export default function IntakeInactive({
 
         <div className="pt-8 flex flex-col sm:flex-row items-center justify-center gap-6">
           <Link 
-            href="https://facebook.com/bracu.computer.club" 
+            href="https://www.facebook.com/BRACUCC" 
             target="_blank"
             className="flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-foreground hover:text-primary transition-colors border-b border-foreground/20 pb-1"
           >
