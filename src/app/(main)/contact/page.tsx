@@ -59,17 +59,17 @@ export default function ContactPage() {
     {
       icon: MapPin,
       title: "Visit Us",
-      details: ["Club Room: UB20401", "BRAC University New Campus", "Badda, Dhaka 1212"],
+      details: ["BRAC University New Campus", "Kha 224 Pragati Sarani, Merul Badda", "Dhaka 1212, Bangladesh"],
     },
     {
       icon: Mail,
       title: "Email Us",
-      details: ["info.bucc@g.bracu.ac.bd", "press.bucc@g.bracu.ac.bd"],
+      details: ["For Business: marketing.bucc@g.bracu.ac.bd", "press.bucc@g.bracu.ac.bd"],
     },
     {
       icon: Phone,
       title: "Call Us",
-      details: ["+880 1712-345678", "(Sun-Thu, 10AM - 5PM)"],
+      details: ["+8801732644303", "(Sun-Thu, 10AM - 5PM)"],
     },
     {
       icon: Clock,
@@ -80,10 +80,10 @@ export default function ContactPage() {
 
   const socialLinks = [
     { icon: Facebook, href: "https://www.facebook.com/BRACUCC", label: "Facebook" },
-    { icon: Linkedin, href: "https://www.linkedin.com/company/bracu-computer-club/", label: "LinkedIn" },
-    { icon: Instagram, href: "https://www.instagram.com/bucc_official/", label: "Instagram" },
-    { icon: Youtube, href: "https://www.youtube.com/@BUCCOfficial", label: "YouTube" },
-    { icon: Github, href: "https://github.com/BUCC-Official", label: "GitHub" },
+    { icon: Linkedin, href: "https://www.linkedin.com/company/bracucc", label: "LinkedIn" },
+    { icon: Instagram, href: "https://www.instagram.com/bracucc/", label: "Instagram" },
+    { icon: Youtube, href: "https://www.youtube.com/@bracucc", label: "YouTube" },
+    { icon: Github, href: "https://github.com/buccbracu", label: "GitHub" },
   ];
 
   return (
