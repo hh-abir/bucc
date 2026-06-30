@@ -57,7 +57,7 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
       type: "website",
       images: [
         {
-          url: event.featuredImage || "/images/cover.jpeg",
+          url: event.featuredImage || "/images/cover.png",
           width: 1200,
           height: 630,
           alt: event.title,
@@ -68,7 +68,7 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
       card: "summary_large_image",
       title: event.title,
       description: event.description,
-      images: [event.featuredImage || "/images/cover.jpeg"],
+      images: [event.featuredImage || "/images/cover.png"],
     },
   };
 }

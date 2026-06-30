@@ -55,7 +55,7 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
       authors: [release.author?.authorName || "BUCC PR"],
       images: [
         {
-          url: release.featuredImage || "/images/cover.jpeg",
+          url: release.featuredImage || "/images/cover.png",
           width: 1200,
           height: 630,
           alt: release.title,
@@ -66,7 +66,7 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
       card: "summary_large_image",
       title: release.title,
       description: release.description,
-      images: [release.featuredImage || "/images/cover.jpeg"],
+      images: [release.featuredImage || "/images/cover.png"],
     },
   };
 }

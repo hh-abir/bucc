@@ -11,6 +11,11 @@ export const metadata: Metadata = {
   },
   description: "BRAC University Computer Club (BUCC) is the oldest and largest tech community at BRAC University, founded in 2001. We empower the next generation of tech leaders.",
   keywords: ["BUCC", "BRAC University", "Computer Club", "Tech Community", "Programming", "Robotics", "Bangladesh", "BRACU"],
+  icons: {
+    icon: "/assets/bucc-favicon.ico",
+    shortcut: "/assets/bucc-favicon.ico",
+    apple: "/assets/bucc-favicon.ico",
+  },
   openGraph: {
     title: "BRAC University Computer Club",
     description: "Empowering the next generation of tech leaders since 2001.",
@@ -18,7 +23,7 @@ export const metadata: Metadata = {
     siteName: "BUCC Web Portal",
     images: [
       {
-        url: "/images/cover.jpeg", // Default fallback image
+        url: "/images/cover.png",
         width: 1200,
         height: 630,
         alt: "BUCC Cover Image",
