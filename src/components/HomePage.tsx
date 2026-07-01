@@ -12,6 +12,29 @@ import ScrollingTicker from "@/components/ui/ScrollingTicker";
 import HeroCarousel from "@/components/home/HeroCarousel";
 import AnnouncementsSection from "@/components/home/AnnouncementsSection";
 import { toast } from "sonner";
+import dynamic from "next/dynamic";
+
+const SplineModel = dynamic(() => import("@/components/home/SplineModel"), {
+  ssr: false,
+  loading: () => <SplineLoader />
+});
+
+function SplineLoader() {
+  return (
+    <div className="w-full h-full min-h-[450px] flex flex-col items-center justify-center relative overflow-hidden bg-card/10 rounded-2xl border border-border/40 backdrop-blur-sm">
+      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-48 h-48 bg-primary/20 rounded-full blur-[60px] animate-pulse" />
+      <div className="relative z-10 flex flex-col items-center gap-4">
+        <div className="relative w-12 h-12">
+          <div className="absolute inset-0 rounded-full border-2 border-primary/20" />
+          <div className="absolute inset-0 rounded-full border-t-2 border-primary animate-spin" />
+        </div>
+        <p className="text-xs font-bold uppercase tracking-widest text-muted-foreground animate-pulse">
+          Initializing 3D Space...
+        </p>
+      </div>
+    </div>
+  );
+}
 const wingsData = [
   {
     title: "Research Wing",
@@ -90,6 +113,41 @@ export default function HomePage({ initialEvents = [], initialProjects = [] }: {
 
   const [currentWingIndex, setCurrentWingIndex] = React.useState(0);
   const [isCarouselHovered, setIsCarouselHovered] = React.useState(false);
+
+  // Spline 3D Model Caching/Load Fallback State
+  const [isWebGLSupported, setIsWebGLSupported] = React.useState(true);
+  const [isSplineLoaded, setIsSplineLoaded] = React.useState(false);
+  const [useThreeColumnFallback, setUseThreeColumnFallback] = React.useState(true);
+
+  React.useEffect(() => {
+    try {
+      const canvas = document.createElement("canvas");
+      const support = !!(
+        window.WebGLRenderingContext &&
+        (canvas.getContext("webgl") || canvas.getContext("experimental-webgl"))
+      );
+      if (!support) {
+        setIsWebGLSupported(false);
+        setUseThreeColumnFallback(true);
+      }
+    } catch (e) {
+      setIsWebGLSupported(false);
+      setUseThreeColumnFallback(true);
+    }
+  }, []);
+
+  React.useEffect(() => {
+    if (!isWebGLSupported) return;
+
+    const timer = setTimeout(() => {
+      if (!isSplineLoaded) {
+        console.warn("Spline loading timed out, reverting to 3-column fallback layout.");
+        setUseThreeColumnFallback(true);
+      }
+    }, 10000); // 10 seconds timeout
+
+    return () => clearTimeout(timer);
+  }, [isWebGLSupported, isSplineLoaded]);
 
   useEffect(() => {
     if (isCarouselHovered) return;
@@ -229,9 +287,9 @@ export default function HomePage({ initialEvents = [], initialProjects = [] }: {
       </section>
  
       {/* 3. The 3D Growth Story (Mind, Career, Soul) */}
-      <section className="relative py-24 md:py-32 px-6 bg-muted/10">
+      <section className="relative min-h-[92vh] flex items-center py-16 lg:py-24 px-6 bg-muted/10">
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[700px] h-[700px] bg-primary/5 rounded-full blur-[160px] pointer-events-none" />
-        <div className="max-w-6xl mx-auto space-y-16 relative z-10">
+        <div className="max-w-6xl mx-auto w-full space-y-16 relative z-10">
           
           <div className="text-center space-y-4 max-w-3xl mx-auto">
             <span className="text-[10px] font-bold uppercase tracking-[0.3em] text-primary px-4 py-1.5 bg-primary/5 rounded-full border border-primary/20">
@@ -245,134 +303,166 @@ export default function HomePage({ initialEvents = [], initialProjects = [] }: {
             </p>
           </div>
 
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-            
-            {/* Dimension 1: MIND */}
-            <motion.div 
-              initial={{ opacity: 0, y: 30 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.6 }}
-              className="group relative bg-card/20 border border-border/40 p-8 rounded-2xl flex flex-col justify-between hover:border-primary/30 hover:bg-card/40 hover:shadow-[0_12px_40px_rgba(var(--primary-rgb),0.02)] transition-all duration-500 backdrop-blur-sm"
-            >
-              {/* Subtle top indicator bar */}
-              <div className="absolute top-0 left-8 right-8 h-[2px] bg-gradient-to-r from-transparent via-primary/30 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+          <div className={useThreeColumnFallback ? "grid grid-cols-1 lg:grid-cols-3 gap-8" : "grid grid-cols-1 lg:grid-cols-12 gap-12 items-center"}>
+            <div className={useThreeColumnFallback ? "contents" : "lg:col-span-7 flex flex-col justify-between h-[500px]"}>
               
-              <div className="space-y-6">
-                <div className="space-y-2">
-                  <span className="text-[10px] font-extrabold uppercase tracking-widest text-primary/80">Dimension 01</span>
-                  <h4 className="text-2xl font-bold text-foreground tracking-tight group-hover:text-primary transition-colors">The Mind</h4>
-                  <p className="text-xs font-semibold text-muted-foreground">Technical Mastery & Research</p>
-                </div>
-                <p className="text-sm text-muted-foreground font-light leading-relaxed">
-                  Hone your engineering skills and academic pursuits through intensive coding labs, structural problem solving, and global research guidelines.
-                </p>
+              {/* Dimension 1: MIND */}
+              <motion.div 
+                initial={{ opacity: 0, y: 30 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.6 }}
+                className="group relative bg-card/20 border border-border/40 p-5 md:p-6 rounded-xl flex flex-col justify-between hover:border-primary/30 hover:bg-card/40 hover:shadow-[0_8px_30px_rgba(var(--primary-rgb),0.01)] transition-all duration-500 backdrop-blur-sm"
+              >
+                {/* Subtle top indicator bar */}
+                <div className="absolute top-0 left-6 right-6 h-[2px] bg-gradient-to-r from-transparent via-primary/30 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
                 
-                <ul className="space-y-3 pt-2">
-                  <li className="flex items-start gap-2.5 text-xs text-muted-foreground">
-                    <div className="w-1.5 h-1.5 rounded-full bg-primary/45 mt-1.5 flex-shrink-0" />
-                    <span>Weekly APC coding contests and web-dev bootcamps.</span>
-                  </li>
-                  <li className="flex items-start gap-2.5 text-xs text-muted-foreground">
-                    <div className="w-1.5 h-1.5 rounded-full bg-primary/45 mt-1.5 flex-shrink-0" />
-                    <span>Research Wing seminars with lecturing professors and study abroad mentors.</span>
-                  </li>
-                </ul>
-              </div>
-
-              <div className="mt-8 pt-6 border-t border-border/30 space-y-3">
-                <span className="text-[9px] font-bold tracking-wider uppercase text-muted-foreground/50 block">Action Wings:</span>
-                <div className="flex flex-wrap gap-2">
-                  <span className="text-[9px] font-bold px-2 py-1 bg-primary/5 border border-primary/10 text-primary/90 rounded-md">Analytical Programming Corner</span>
-                  <span className="text-[9px] font-bold px-2 py-1 bg-primary/5 border border-primary/10 text-primary/90 rounded-md">Research Wing</span>
+                <div className="space-y-4">
+                  <div className="space-y-1">
+                    <span className="text-[9px] font-extrabold uppercase tracking-widest text-primary/80">Dimension 01</span>
+                    <h4 className="text-xl font-bold text-foreground tracking-tight group-hover:text-primary transition-colors">The Mind</h4>
+                    <p className="text-[10px] font-semibold text-muted-foreground">Technical Mastery & Research</p>
+                  </div>
+                  <p className="text-xs text-muted-foreground font-light leading-relaxed">
+                    Hone your engineering skills and academic pursuits through intensive coding labs, structural problem solving, and global research guidelines.
+                  </p>
+                  
+                  {useThreeColumnFallback && (
+                    <ul className="space-y-1.5 pt-1.5 border-t border-border/10">
+                      <li className="flex items-start gap-2 text-[11px] text-muted-foreground">
+                        <div className="w-1 h-1 rounded-full bg-primary/45 mt-1.5 flex-shrink-0" />
+                        <span>Weekly APC coding contests and web-dev bootcamps.</span>
+                      </li>
+                      <li className="flex items-start gap-2 text-[11px] text-muted-foreground">
+                        <div className="w-1 h-1 rounded-full bg-primary/45 mt-1.5 flex-shrink-0" />
+                        <span>Research Wing seminars with lecturing professors and study abroad mentors.</span>
+                      </li>
+                    </ul>
+                  )}
                 </div>
-              </div>
-            </motion.div>
 
-            {/* Dimension 2: CAREER */}
-            <motion.div 
-              initial={{ opacity: 0, y: 30 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.6, delay: 0.1 }}
-              className="group relative bg-card/20 border border-border/40 p-8 rounded-2xl flex flex-col justify-between hover:border-primary/30 hover:bg-card/40 hover:shadow-[0_12px_40px_rgba(var(--primary-rgb),0.02)] transition-all duration-500 backdrop-blur-sm"
-            >
-              {/* Subtle top indicator bar */}
-              <div className="absolute top-0 left-8 right-8 h-[2px] bg-gradient-to-r from-transparent via-primary/30 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-              
-              <div className="space-y-6">
-                <div className="space-y-2">
-                  <span className="text-[10px] font-extrabold uppercase tracking-widest text-primary/80">Dimension 02</span>
-                  <h4 className="text-2xl font-bold text-foreground tracking-tight group-hover:text-primary transition-colors">The Career</h4>
-                  <p className="text-xs font-semibold text-muted-foreground">Professional Readiness & Products</p>
+                {useThreeColumnFallback && (
+                  <div className="mt-5 pt-4 border-t border-border/20 space-y-2">
+                    <span className="text-[8px] font-bold tracking-wider uppercase text-muted-foreground/50 block">Action Wings:</span>
+                    <div className="flex flex-wrap gap-1.5">
+                      <span className="text-[8px] font-bold px-1.5 py-0.5 bg-primary/5 border border-primary/10 text-primary/80 rounded">Analytical Programming Corner</span>
+                      <span className="text-[8px] font-bold px-1.5 py-0.5 bg-primary/5 border border-primary/10 text-primary/80 rounded">Research Wing</span>
+                    </div>
+                  </div>
+                )}
+              </motion.div>
+
+              {/* Dimension 2: CAREER */}
+              <motion.div 
+                initial={{ opacity: 0, y: 30 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.6, delay: 0.1 }}
+                className="group relative bg-card/20 border border-border/40 p-5 md:p-6 rounded-xl flex flex-col justify-between hover:border-primary/30 hover:bg-card/40 hover:shadow-[0_8px_30px_rgba(var(--primary-rgb),0.01)] transition-all duration-500 backdrop-blur-sm"
+              >
+                {/* Subtle top indicator bar */}
+                <div className="absolute top-0 left-6 right-6 h-[2px] bg-gradient-to-r from-transparent via-primary/30 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+                
+                <div className="space-y-4">
+                  <div className="space-y-1">
+                    <span className="text-[9px] font-extrabold uppercase tracking-widest text-primary/80">Dimension 02</span>
+                    <h4 className="text-xl font-bold text-foreground tracking-tight group-hover:text-primary transition-colors">The Career</h4>
+                    <p className="text-[10px] font-semibold text-muted-foreground">Professional Readiness & Products</p>
+                  </div>
+                  <p className="text-xs text-muted-foreground font-light leading-relaxed">
+                    Bridge the gap between class courses and the industry. Design production-level club software, build your resume, and connect with global employers.
+                  </p>
+
+                  {useThreeColumnFallback && (
+                    <ul className="space-y-1.5 pt-1.5 border-t border-border/10">
+                      <li className="flex items-start gap-2 text-[11px] text-muted-foreground">
+                        <div className="w-1 h-1 rounded-full bg-primary/45 mt-1.5 flex-shrink-0" />
+                        <span>Collaborate on live platforms, portfolios, and tools in R&D.</span>
+                      </li>
+                      <li className="flex items-start gap-2 text-[11px] text-muted-foreground">
+                        <div className="w-1 h-1 rounded-full bg-primary/45 mt-1.5 flex-shrink-0" />
+                        <span>Secure corporate relations, sponsorship pitches, and job referrals.</span>
+                      </li>
+                    </ul>
+                  )}
                 </div>
-                <p className="text-sm text-muted-foreground font-light leading-relaxed">
-                  Bridge the gap between class courses and the industry. Design production-level club software, build your resume, and connect with global employers.
-                </p>
 
-                <ul className="space-y-3 pt-2">
-                  <li className="flex items-start gap-2.5 text-xs text-muted-foreground">
-                    <div className="w-1.5 h-1.5 rounded-full bg-primary/45 mt-1.5 flex-shrink-0" />
-                    <span>Collaborate on live platforms, portfolios, and tools in R&D.</span>
-                  </li>
-                  <li className="flex items-start gap-2.5 text-xs text-muted-foreground">
-                    <div className="w-1.5 h-1.5 rounded-full bg-primary/45 mt-1.5 flex-shrink-0" />
-                    <span>Secure corporate relations, sponsorship pitches, and job referrals.</span>
-                  </li>
-                </ul>
-              </div>
+                {useThreeColumnFallback && (
+                  <div className="mt-5 pt-4 border-t border-border/20 space-y-2">
+                    <span className="text-[8px] font-bold tracking-wider uppercase text-muted-foreground/50 block">Active Teams:</span>
+                    <div className="flex flex-wrap gap-1.5">
+                      <span className="text-[8px] font-bold px-1.5 py-0.5 bg-primary/5 border border-primary/10 text-primary/80 rounded">Research & Development (R&D)</span>
+                      <span className="text-[8px] font-bold px-1.5 py-0.5 bg-primary/5 border border-primary/10 text-primary/80 rounded">Corporate Alliance</span>
+                    </div>
+                  </div>
+                )}
+              </motion.div>
 
-              <div className="mt-8 pt-6 border-t border-border/30 space-y-3">
-                <span className="text-[9px] font-bold tracking-wider uppercase text-muted-foreground/50 block">Active Teams:</span>
-                <div className="flex flex-wrap gap-2">
-                  <span className="text-[9px] font-bold px-2 py-1 bg-primary/5 border border-primary/10 text-primary/90 rounded-md">Research & Development (R&D)</span>
-                  <span className="text-[9px] font-bold px-2 py-1 bg-primary/5 border border-primary/10 text-primary/90 rounded-md">Corporate Alliance</span>
+              {/* Dimension 3: SOUL */}
+              <motion.div 
+                initial={{ opacity: 0, y: 30 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.6, delay: 0.2 }}
+                className="group relative bg-card/20 border border-border/40 p-5 md:p-6 rounded-xl flex flex-col justify-between hover:border-primary/30 hover:bg-card/40 hover:shadow-[0_8px_30px_rgba(var(--primary-rgb),0.01)] transition-all duration-500 backdrop-blur-sm"
+              >
+                {/* Subtle top indicator bar */}
+                <div className="absolute top-0 left-6 right-6 h-[2px] bg-gradient-to-r from-transparent via-primary/30 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+                
+                <div className="space-y-4">
+                  <div className="space-y-1">
+                    <span className="text-[9px] font-extrabold uppercase tracking-widest text-primary/80">Dimension 03</span>
+                    <h4 className="text-xl font-bold text-foreground tracking-tight group-hover:text-primary transition-colors">The Soul</h4>
+                    <p className="text-[10px] font-semibold text-muted-foreground">Campus Life & Social Community</p>
+                  </div>
+                  <p className="text-xs text-muted-foreground font-light leading-relaxed">
+                    Experience a supportive community that extends far beyond computer screens. Join sports leagues, host orientations, and capture college memories.
+                  </p>
+
+                  {useThreeColumnFallback && (
+                    <ul className="space-y-1.5 pt-1.5 border-t border-border/10">
+                      <li className="flex items-start gap-2 text-[11px] text-muted-foreground">
+                        <div className="w-1 h-1 rounded-full bg-primary/45 mt-1.5 flex-shrink-0" />
+                        <span>Male & female teams active in basketball, football, and e-sports leagues.</span>
+                      </li>
+                      <li className="flex items-start gap-2 text-[11px] text-muted-foreground">
+                        <div className="w-1 h-1 rounded-full bg-primary/45 mt-1.5 flex-shrink-0" />
+                        <span>Creative graphic design, anchoring, video editing, and orientations.</span>
+                      </li>
+                    </ul>
+                  )}
                 </div>
+
+                {useThreeColumnFallback && (
+                  <div className="mt-5 pt-4 border-t border-border/20 space-y-2">
+                    <span className="text-[8px] font-bold tracking-wider uppercase text-muted-foreground/50 block">Action Wings:</span>
+                    <div className="flex flex-wrap gap-1.5">
+                      <span className="text-[8px] font-bold px-1.5 py-0.5 bg-primary/5 border border-primary/10 text-primary/80 rounded">Sports Wing</span>
+                      <span className="text-[8px] font-bold px-1.5 py-0.5 bg-primary/5 border border-primary/10 text-primary/80 rounded">Creative & Anchoring Wings</span>
+                    </div>
+                  </div>
+                )}
+              </motion.div>
+            </div>
+
+            {isWebGLSupported && (
+              <div className={useThreeColumnFallback 
+                ? "hidden opacity-0 pointer-events-none w-0 h-0 overflow-hidden absolute" 
+                : "lg:col-span-5 h-[500px] w-full relative rounded-2xl overflow-hidden bg-card/10 border border-border/40 backdrop-blur-sm opacity-100 transition-all duration-700 animate-in fade-in zoom-in-95"
+              }>
+                <SplineModel 
+                  scene="https://prod.spline.design/97MRBci3ZutLdKaH/scene.splinecode" 
+                  onLoad={() => {
+                    setIsSplineLoaded(true);
+                    setUseThreeColumnFallback(false);
+                  }}
+                  onError={() => {
+                    setIsWebGLSupported(false);
+                    setUseThreeColumnFallback(true);
+                  }}
+                />
               </div>
-            </motion.div>
-
-            {/* Dimension 3: SOUL */}
-            <motion.div 
-              initial={{ opacity: 0, y: 30 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.6, delay: 0.2 }}
-              className="group relative bg-card/20 border border-border/40 p-8 rounded-2xl flex flex-col justify-between hover:border-primary/30 hover:bg-card/40 hover:shadow-[0_12px_40px_rgba(var(--primary-rgb),0.02)] transition-all duration-500 backdrop-blur-sm"
-            >
-              {/* Subtle top indicator bar */}
-              <div className="absolute top-0 left-8 right-8 h-[2px] bg-gradient-to-r from-transparent via-primary/30 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-              
-              <div className="space-y-6">
-                <div className="space-y-2">
-                  <span className="text-[10px] font-extrabold uppercase tracking-widest text-primary/80">Dimension 03</span>
-                  <h4 className="text-2xl font-bold text-foreground tracking-tight group-hover:text-primary transition-colors">The Soul</h4>
-                  <p className="text-xs font-semibold text-muted-foreground">Campus Life & Social Community</p>
-                </div>
-                <p className="text-sm text-muted-foreground font-light leading-relaxed">
-                  Experience a supportive community that extends far beyond computer screens. Join sports leagues, host orientations, and capture college memories.
-                </p>
-
-                <ul className="space-y-3 pt-2">
-                  <li className="flex items-start gap-2.5 text-xs text-muted-foreground">
-                    <div className="w-1.5 h-1.5 rounded-full bg-primary/45 mt-1.5 flex-shrink-0" />
-                    <span>Male & female teams active in basketball, football, and e-sports leagues.</span>
-                  </li>
-                  <li className="flex items-start gap-2.5 text-xs text-muted-foreground">
-                    <div className="w-1.5 h-1.5 rounded-full bg-primary/45 mt-1.5 flex-shrink-0" />
-                    <span>Creative graphic design, anchoring, video editing, and orientations.</span>
-                  </li>
-                </ul>
-              </div>
-
-              <div className="mt-8 pt-6 border-t border-border/30 space-y-3">
-                <span className="text-[9px] font-bold tracking-wider uppercase text-muted-foreground/50 block">Action Wings:</span>
-                <div className="flex flex-wrap gap-2">
-                  <span className="text-[9px] font-bold px-2 py-1 bg-primary/5 border border-primary/10 text-primary/90 rounded-md">Sports Wing</span>
-                  <span className="text-[9px] font-bold px-2 py-1 bg-primary/5 border border-primary/10 text-primary/90 rounded-md">Creative & Anchoring Wings</span>
-                </div>
-              </div>
-            </motion.div>
-
+            )}
           </div>
           
         </div>
