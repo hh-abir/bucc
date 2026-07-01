@@ -379,7 +379,7 @@ export default function HomePage({ initialEvents = [], initialProjects = [] }: {
       </section>
  
       {/* 4. Department Directory */}
-      <section className="relative py-24 md:py-32 px-6">
+      <section id="departments-section" className="relative py-24 md:py-32 px-6">
         <div className="absolute right-0 bottom-1/4 w-[400px] h-[400px] bg-primary/5 rounded-full blur-[120px] pointer-events-none" />
         <div className="max-w-6xl mx-auto space-y-16 relative z-10">
           <div className="max-w-2xl space-y-4">

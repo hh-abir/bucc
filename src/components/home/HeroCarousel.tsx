@@ -20,7 +20,7 @@ const DEFAULT_HERO_SLIDES = [
     title: "Innovate. Build. Lead.",
     subtitle: "From software development to robotics, turn your ideas into reality.",
     image: "https://images.unsplash.com/photo-1531482615713-2afd69097998?q=80&w=2070&auto=format&fit=crop",
-    link: "/departments",
+    link: "#departments-section",
     cta: "Explore Departments",
   },
   {
@@ -118,13 +118,29 @@ export default function HeroCarousel() {
                 {slides[currentSlide].subtitle}
               </p>
               <div className="pt-4">
-                <Link 
-                  href={slides[currentSlide].link}
-                  className="inline-flex items-center gap-3 px-8 py-4 bg-white text-black font-medium transition-all hover:bg-white/90 group"
-                >
-                  {slides[currentSlide].cta}
-                  <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-1" />
-                </Link>
+                {slides[currentSlide].link.startsWith("#") ? (
+                  <button 
+                    onClick={(e) => {
+                      e.preventDefault();
+                      const el = document.getElementById(slides[currentSlide].link.substring(1));
+                      if (el) {
+                        el.scrollIntoView({ behavior: "smooth" });
+                      }
+                    }}
+                    className="inline-flex items-center gap-3 px-8 py-4 bg-white text-black font-medium transition-all hover:bg-white/90 group"
+                  >
+                    {slides[currentSlide].cta}
+                    <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-1" />
+                  </button>
+                ) : (
+                  <Link 
+                    href={slides[currentSlide].link}
+                    className="inline-flex items-center gap-3 px-8 py-4 bg-white text-black font-medium transition-all hover:bg-white/90 group"
+                  >
+                    {slides[currentSlide].cta}
+                    <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-1" />
+                  </Link>
+                )}
               </div>
             </motion.div>
           </div>

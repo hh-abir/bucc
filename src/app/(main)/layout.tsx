@@ -1,6 +1,7 @@
 import { Navbar } from "@/components/Navbar";
 import { AnnouncementBar } from "@/components/ui/AnnouncementBar";
 import Footer from "@/components/Footer";
+import ScrollToTop from "@/components/ui/ScrollToTop";
 
 export default function MainLayout({
   children,
@@ -15,6 +16,7 @@ export default function MainLayout({
         {children}
       </main>
       <Footer/>
+      <ScrollToTop />
     </>
   );
 }
