@@ -41,7 +41,7 @@ export default function AdvisorsPage() {
           </div>
 
           {advisorsData.map((advisor, index) => (
-            <Card key={index} className="border-border shadow-sm overflow-hidden bg-card hover:shadow-md transition-all duration-500">
+            <Card key={index} className="group border-border shadow-sm overflow-hidden bg-card hover:shadow-md transition-all duration-500">
               <div className="grid grid-cols-1 lg:grid-cols-12">
                 <div className="lg:col-span-5 relative aspect-[3/4] lg:aspect-auto min-h-[400px] overflow-hidden bg-muted">
                   <Image 
@@ -49,9 +49,9 @@ export default function AdvisorsPage() {
                     alt={advisor.name}
                     fill
                     sizes="(max-width: 1024px) 100vw, 400px"
-                    className="object-cover object-top grayscale hover:grayscale-0 transition-all duration-700"
+                    className="object-cover object-top grayscale group-hover:grayscale-0 transition-all duration-700"
                   />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 lg:opacity-100" />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 lg:opacity-100 pointer-events-none" />
                 </div>
                 
                 <CardContent className="lg:col-span-7 p-8 md:p-12 flex flex-col justify-center space-y-8">
@@ -103,14 +103,14 @@ export default function AdvisorsPage() {
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
           {coAdvisorsData.map((advisor, index) => (
-            <Card key={index} className="border-border shadow-sm overflow-hidden bg-card flex flex-col hover:border-primary/20 transition-all duration-500">
+            <Card key={index} className="group border-border shadow-sm overflow-hidden bg-card flex flex-col hover:border-primary/20 transition-all duration-500">
               <div className="relative aspect-[4/3] w-full overflow-hidden bg-muted">
                 <Image 
                   src={advisor.image || "https://images.unsplash.com/photo-1568602471122-7832951cc4c5?q=80&w=2070&auto=format&fit=crop"} 
                   alt={advisor.name}
                   fill
                   sizes="(max-width: 768px) 100vw, 50vw"
-                  className="object-cover object-top grayscale hover:grayscale-0 transition-all duration-700"
+                  className="object-cover object-top grayscale group-hover:grayscale-0 transition-all duration-700"
                 />
               </div>
               

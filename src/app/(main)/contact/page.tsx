@@ -64,7 +64,7 @@ export default function ContactPage() {
     {
       icon: Mail,
       title: "Email Us",
-      details: ["For Business: marketing.bucc@g.bracu.ac.bd", "press.bucc@g.bracu.ac.bd"],
+      details: ["For Business:", "marketing.bucc@g.bracu.ac.bd"],
     },
     {
       icon: Phone,
@@ -110,7 +110,7 @@ export default function ContactPage() {
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-12">
           
           {/* Contact Details */}
-          <div className="lg:col-span-5 space-y-8">
+          <div className="lg:col-span-6 space-y-8">
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
               {contactInfo.map((info, i) => (
                 <Card key={i} className="border-border shadow-none bg-card hover:border-primary/20 transition-all duration-300">
@@ -121,9 +121,25 @@ export default function ContactPage() {
                     <div className="space-y-2">
                       <h3 className="text-sm font-bold uppercase tracking-widest text-foreground">{info.title}</h3>
                       <div className="space-y-1">
-                        {info.details.map((detail, j) => (
-                          <p key={j} className="text-sm text-muted-foreground font-light">{detail}</p>
-                        ))}
+                        {info.details.map((detail, j) => {
+                          const isEmail = detail.includes("@");
+                          if (isEmail) {
+                            return (
+                              <a 
+                                key={j} 
+                                href={`mailto:${detail}`} 
+                                className="block text-xs md:text-sm text-primary hover:underline font-light break-all"
+                              >
+                                {detail}
+                              </a>
+                            );
+                          }
+                          return (
+                            <p key={j} className="text-xs md:text-sm text-muted-foreground font-light break-words">
+                              {detail}
+                            </p>
+                          );
+                        })}
                       </div>
                     </div>
                   </CardContent>
@@ -151,20 +167,19 @@ export default function ContactPage() {
               </CardContent>
             </Card>
 
-            <div className="aspect-video w-full bg-muted rounded-sm border border-border relative overflow-hidden group">
-              {/* This would be an iframe or a custom map component */}
-              <div className="absolute inset-0 flex items-center justify-center bg-muted group-hover:bg-muted/50 transition-colors">
-                <div className="text-center space-y-2">
-                  <MapPin className="w-8 h-8 mx-auto text-muted-foreground/40" />
-                  <p className="text-xs font-bold uppercase tracking-widest text-muted-foreground/60">BRAC University New Campus</p>
-                </div>
-              </div>
-              <div className="absolute inset-0 pointer-events-none border border-foreground/5" />
+            <div className="aspect-video w-full bg-muted rounded-sm border border-border relative overflow-hidden">
+              <iframe 
+                src="https://maps.google.com/maps?q=BRAC%20University%20New%20Campus%20Merul%20Badda&t=&z=15&ie=UTF8&iwloc=&output=embed"
+                className="w-full h-full border-0"
+                allowFullScreen
+                loading="lazy"
+                referrerPolicy="no-referrer-when-downgrade"
+              />
             </div>
           </div>
 
           {/* Contact Form */}
-          <div className="lg:col-span-7">
+          <div className="lg:col-span-6">
             <Card className="border-border shadow-2xl shadow-foreground/5 bg-background h-full">
               <CardContent className="p-8 md:p-12 space-y-10">
                 <div className="space-y-2">
