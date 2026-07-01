@@ -115,11 +115,14 @@ export default function HomePage({ initialEvents = [], initialProjects = [] }: {
   const [isCarouselHovered, setIsCarouselHovered] = React.useState(false);
 
   // Spline 3D Model Caching/Load Fallback State
+  // We initialize useThreeColumnFallback to true so the site immediately displays
+  // the original static 3-column layout, avoiding blank loaders or layout shifting.
   const [isWebGLSupported, setIsWebGLSupported] = React.useState(true);
   const [isSplineLoaded, setIsSplineLoaded] = React.useState(false);
   const [useThreeColumnFallback, setUseThreeColumnFallback] = React.useState(true);
 
   React.useEffect(() => {
+    // Verify WebGL capability in user's browser. If missing, disable Spline and keep static columns.
     try {
       const canvas = document.createElement("canvas");
       const support = !!(
@@ -139,6 +142,8 @@ export default function HomePage({ initialEvents = [], initialProjects = [] }: {
   React.useEffect(() => {
     if (!isWebGLSupported) return;
 
+    // Safety Timeout: If assets from prod.spline.design fail to load within 10s 
+    // (due to slow network or strict adblockers), maintain the static fallback layout.
     const timer = setTimeout(() => {
       if (!isSplineLoaded) {
         console.warn("Spline loading timed out, reverting to 3-column fallback layout.");
@@ -303,7 +308,18 @@ export default function HomePage({ initialEvents = [], initialProjects = [] }: {
             </p>
           </div>
 
+          {/* 
+            Dynamic Grid Layout:
+            - If Spline is loading or WebGL is missing (useThreeColumnFallback is true), renders a standard 3-column static layout.
+            - If Spline is loaded (useThreeColumnFallback is false), renders a 12-column grid layout split (7 columns for cards, 5 for Spline).
+          */}
           <div className={useThreeColumnFallback ? "grid grid-cols-1 lg:grid-cols-3 gap-8" : "grid grid-cols-1 lg:grid-cols-12 gap-12 items-center"}>
+            {/* 
+              Cards Flex Container:
+              - When useThreeColumnFallback is true, we set this div to 'contents'. This effectively dissolves the wrapper
+                in CSS Grid, rendering the 3 Dimension cards directly under the parent container as columns of grid-cols-3.
+              - When useThreeColumnFallback is false, it spans 7 columns and stacks the cards vertically to exactly match the Spline box.
+            */}
             <div className={useThreeColumnFallback ? "contents" : "lg:col-span-7 flex flex-col gap-5 lg:gap-0 lg:justify-between lg:h-[500px]"}>
               
               {/* Dimension 1: MIND */}
@@ -445,6 +461,12 @@ export default function HomePage({ initialEvents = [], initialProjects = [] }: {
               </motion.div>
             </div>
 
+            {/* 
+              WebGL Spline Box:
+              - Rendered persistently in the DOM to cache-prefetch the Spline assets in the background.
+              - Controls display using CSS toggle states ('hidden pointer-events-none absolute' vs 'lg:col-span-5 block')
+                to avoid unmounting and re-downloading WebGL canvases when state updates.
+            */}
             {isWebGLSupported && (
               <div className={useThreeColumnFallback 
                 ? "hidden opacity-0 pointer-events-none w-0 h-0 overflow-hidden absolute" 

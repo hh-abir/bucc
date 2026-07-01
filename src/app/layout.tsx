@@ -47,6 +47,11 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" suppressHydrationWarning>
+      <head>
+        {/* Preconnect and DNS prefetch to Spline CDN to accelerate connection handshakes for the 3D visual assets */}
+        <link rel="preconnect" href="https://prod.spline.design" />
+        <link rel="dns-prefetch" href="https://prod.spline.design" />
+      </head>
       <body className="font-sans bg-background text-foreground">
         <Providers>
           {children}
