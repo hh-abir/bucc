@@ -22,7 +22,7 @@ export default function PublicProfileSettings() {
   const [formData, setFormData] = useState<any>(null);
 
   useEffect(() => {
-    if (user) {
+    if (user && !formData) {
       setFormData({
         profileSlug: user.profileSlug || "",
         isPublicProfile: user.isPublicProfile ?? false,
@@ -48,7 +48,7 @@ export default function PublicProfileSettings() {
         showGithubStats: user.showGithubStats ?? true,
       });
     }
-  }, [user]);
+  }, [user, formData]);
 
   const handleCoverUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -97,6 +97,7 @@ export default function PublicProfileSettings() {
 
       if (res.ok) {
         toast.success("Public profile settings updated successfully");
+        setFormData(null);
         await refreshUser();
       } else {
         const err = await res.json();

@@ -36,7 +36,7 @@ export default function EditProfile() {
   const [formData, setFormData] = useState<any>(null);
 
   useEffect(() => {
-    if (user) {
+    if (user && !formData) {
       setFormData({
         phoneNumber: user.phoneNumber || "",
         personalEmail: user.personalEmail || "",
@@ -47,7 +47,7 @@ export default function EditProfile() {
         memberSocials: user.memberSocials || { Facebook: "", Github: "", Linkedin: "" },
       });
     }
-  }, [user]);
+  }, [user, formData]);
 
   const handleUpdate = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -61,6 +61,7 @@ export default function EditProfile() {
 
       if (res.ok) {
         toast.success("Profile updated successfully");
+        setFormData(null);
         await refreshUser();
       } else {
         const err = await res.json();
@@ -150,11 +151,16 @@ export default function EditProfile() {
                 </div>
                 <div className="space-y-2">
                   <Label className="text-[10px] uppercase font-bold text-muted-foreground">Gender</Label>
-                  <Input 
-                    value={formData.gender} 
+                  <select
+                    value={formData.gender}
                     onChange={(e) => setFormData({...formData, gender: e.target.value})}
-                    className="bg-transparent border-0 border-b border-border rounded-none px-0 focus-visible:ring-0 focus-visible:border-primary transition-colors text-lg"
-                  />
+                    className="w-full bg-transparent border-0 border-b border-border rounded-none px-0 py-1.5 focus-visible:ring-0 focus-visible:border-primary transition-colors text-lg cursor-pointer outline-none dark:bg-card"
+                  >
+                    <option value="" disabled className="bg-card">Select Gender</option>
+                    <option value="Male" className="bg-card">Male</option>
+                    <option value="Female" className="bg-card">Female</option>
+                    <option value="Other" className="bg-card">Other</option>
+                  </select>
                 </div>
               </div>
             </div>
