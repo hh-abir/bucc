@@ -221,7 +221,7 @@ export default function ProjectRequestsPage() {
                           <Edit className="w-3.5 h-3.5" /> Edit
                         </Button>
                       </Link>
-                      {isGB && (
+                      {isSuper && (
                         <Button 
                           variant="ghost" 
                           size="sm" 
