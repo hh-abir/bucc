@@ -40,7 +40,7 @@ export const isSuperUser = (user: UserRole) => {
 
 export const canManageMembers = (user: UserRole) => {
   if (user.memberStatus === "Alumni") return false;
-  if (isGoverningBody(user)) return true;
+  if (isSuperUser(user)) return true;
   
   return (
     ["Director", "Assistant Director"].includes(user.designation)

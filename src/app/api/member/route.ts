@@ -1,5 +1,6 @@
 import { auth } from "@/auth";
 import { NextRequest, NextResponse } from "next/server";
+import { isSuperUser } from "@/lib/permissions";
 import { MongoClient, ObjectId } from "mongodb";
 
 const client = new MongoClient(process.env.MONGODB_URI as string);
@@ -25,7 +26,7 @@ export async function GET(request: NextRequest) {
 
     const currentUser = session.user as any;
     const isAlumni = currentUser.memberStatus === "Alumni";
-    const isGB = ["President", "Vice President", "General Secretary", "Treasurer"].includes(currentUser.designation) && !isAlumni;
+    const isGB = isSuperUser(currentUser);
     const isHR = currentUser.buccDepartment === "Human Resources" && !isAlumni;
     const isDeptHead = ["Director", "Assistant Director"].includes(currentUser.designation) && !isAlumni;
 
@@ -64,7 +65,7 @@ export async function PATCH(request: NextRequest) {
 
     const currentUser = session.user as any;
     const isAlumni = currentUser.memberStatus === "Alumni";
-    const isGB = ["President", "Vice President", "General Secretary", "Treasurer"].includes(currentUser.designation) && !isAlumni;
+    const isGB = isSuperUser(currentUser);
     const isHR = currentUser.buccDepartment === "Human Resources" && !isAlumni;
     const isDeptHead = ["Director", "Assistant Director"].includes(currentUser.designation) && !isAlumni;
     
@@ -169,7 +170,7 @@ export async function DELETE(request: NextRequest) {
 
     const currentUser = session.user as any;
     const isAlumni = currentUser.memberStatus === "Alumni";
-    const isGB = ["President", "Vice President", "General Secretary", "Treasurer"].includes(currentUser.designation) && !isAlumni;
+    const isGB = isSuperUser(currentUser);
     const isHR = currentUser.buccDepartment === "Human Resources" && !isAlumni;
     const isDeptHead = ["Director", "Assistant Director"].includes(currentUser.designation) && !isAlumni;
 

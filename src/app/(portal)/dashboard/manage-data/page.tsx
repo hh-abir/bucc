@@ -20,16 +20,20 @@ import {
   RefreshCw,
   CheckCircle2
 } from "lucide-react";
-import { isGoverningBody as checkGB } from "@/lib/permissions";
+import { isSuperUser as checkGB } from "@/lib/permissions";
 
 const MANAGEABLE_MODELS = [
   { name: "Members (All Data)", collection: "user", protected: true },
-  { name: "Evaluations", collection: "evaluationdatas", protected: false },
-  { name: "Pre-Reg Members", collection: "preregmembers", protected: false },
+  { name: "Projects", collection: "projects", protected: true },
   { name: "Blogs", collection: "blogs", protected: true },
   { name: "Events", collection: "events", protected: true },
+  { name: "Evaluations", collection: "evaluationdatas", protected: false },
+  { name: "Pre-Reg Members", collection: "preregmembers", protected: false },
   { name: "PR/Press Releases", collection: "pressreleases", protected: false },
-  { name: "Accounts (Auth)", collection: "account", protected: true },
+  { name: "Inquiries", collection: "inquiries", protected: false },
+  { name: "Testimonials", collection: "testimonials", protected: false },
+  { name: "Announcements", collection: "announcements", protected: false },
+  { name: "Tasks", collection: "tasks", protected: false },
   { name: "Sessions (Live)", collection: "session", protected: true },
 ];
 

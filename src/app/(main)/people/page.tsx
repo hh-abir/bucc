@@ -2,8 +2,9 @@ import { Metadata } from "next";
 import dbConnect from "@/lib/dbConnect";
 import User from "@/model/User";
 import PeopleDirectory from "./PeopleDirectory";
+import { revalidatePeople } from "@/actions/revalidate";
 
-export const revalidate = 60; // Revalidate every minute
+export const revalidate = 7200; // Revalidate every 2 hours
 
 export const metadata: Metadata = {
   title: "Members Directory | BUCC",
@@ -51,7 +52,7 @@ export default async function PeoplePage() {
   return (
     <div className="min-h-screen bg-background pb-32">
       <div className="max-w-6xl mx-auto px-6 pt-16">
-        <PeopleDirectory initialMembers={members} />
+        <PeopleDirectory initialMembers={members} revalidateAction={revalidatePeople} />
       </div>
     </div>
   );

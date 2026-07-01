@@ -2,7 +2,7 @@ import { auth } from "@/auth";
 import dbConnect from "@/lib/dbConnect";
 import GlobalBanner from "@/model/GlobalBanner";
 import { NextRequest, NextResponse } from "next/server";
-import { isGoverningBody } from "@/lib/permissions";
+import { isSuperUser } from "@/lib/permissions";
 
 export async function GET() {
   try {
@@ -21,8 +21,8 @@ export async function POST(request: NextRequest) {
     if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
     const user = session.user as any;
-    if (!isGoverningBody(user)) {
-      return NextResponse.json({ error: "Only Governing Body can manage the global banner" }, { status: 403 });
+    if (!isSuperUser(user)) {
+      return NextResponse.json({ error: "Only Governing Body and R&D leaders can manage the global banner" }, { status: 403 });
     }
 
     const body = await request.json();

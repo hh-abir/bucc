@@ -2,7 +2,7 @@ import { auth } from "@/auth";
 import dbConnect from "@/lib/dbConnect";
 import { NextRequest, NextResponse } from "next/server";
 import { MongoClient } from "mongodb";
-import { isGoverningBody as checkGB } from "@/lib/permissions";
+import { isSuperUser as checkGB } from "@/lib/permissions";
 import generatePassword from "@/helpers/generatePassword";
 import { singleWelcomeMail } from "@/helpers/mailer";
 import { auth as authServer } from "@/lib/auth";
@@ -11,15 +11,27 @@ const client = new MongoClient(process.env.MONGODB_URI as string);
 const db = client.db(process.env.MONGODB_DB as string);
 
 // Configuration
-const FLUSHABLE_MODELS = ["evaluationdatas", "preregmembers", "pressreleases"];
+const FLUSHABLE_MODELS = [
+  "evaluationdatas", 
+  "preregmembers", 
+  "pressreleases", 
+  "inquiries", 
+  "testimonials", 
+  "announcements", 
+  "tasks"
+];
 const MANAGEABLE_MODELS = [
   { name: "Members (All Data)", collection: "user" },
-  { name: "Evaluations", collection: "evaluationdatas" },
-  { name: "Pre-Reg Members", collection: "preregmembers" },
+  { name: "Projects", collection: "projects" },
   { name: "Blogs", collection: "blogs" },
   { name: "Events", collection: "events" },
+  { name: "Evaluations", collection: "evaluationdatas" },
+  { name: "Pre-Reg Members", collection: "preregmembers" },
   { name: "PR/Press Releases", collection: "pressreleases" },
-  { name: "Accounts (Auth)", collection: "account" },
+  { name: "Inquiries", collection: "inquiries" },
+  { name: "Testimonials", collection: "testimonials" },
+  { name: "Announcements", collection: "announcements" },
+  { name: "Tasks", collection: "tasks" },
   { name: "Sessions (Live)", collection: "session" },
 ];
 
@@ -136,7 +148,7 @@ export async function DELETE(request: NextRequest) {
     if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
     const user = session.user as any;
-    if (!checkGB(user)) return NextResponse.json({ error: "Only Governing Body can flush data" }, { status: 403 });
+    if (!checkGB(user)) return NextResponse.json({ error: "Only Governing Body and R&D leaders can flush data" }, { status: 403 });
 
     const url = new URL(request.url);
     const model = url.searchParams.get("model");

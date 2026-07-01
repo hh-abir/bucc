@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { authClient } from "@/lib/auth-client";
+import { isSuperUser } from "@/lib/permissions";
 import { 
   Sheet, 
   SheetContent, 
@@ -56,7 +57,7 @@ export default function MemberEditDialog({
 }) {
   const { data: session } = authClient.useSession();
   const currentUser = session?.user as any;
-  const isGB = currentUser && ["President", "Vice President", "General Secretary", "Treasurer"].includes(currentUser.designation);
+  const isGB = currentUser && isSuperUser(currentUser);
 
   const [loading, setLoading] = useState(false);
   const [deleteConfirm, setDeleteConfirm] = useState(false);

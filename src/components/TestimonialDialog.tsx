@@ -17,6 +17,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import { Award, Plus } from "lucide-react";
+import { isSuperUser } from "@/lib/permissions";
 
 interface TestimonialDialogProps {
   targetMemberId: string;
@@ -37,7 +38,7 @@ export default function TestimonialDialog({ targetMemberId, targetMemberName }: 
   if (!currentUser) return null;
 
   // Check if current user has permissions (EB or Alumni)
-  const isGB = ["President", "Vice President", "General Secretary", "Treasurer"].includes(currentUser.designation);
+  const isGB = isSuperUser(currentUser);
   const isEB = ["Director", "Assistant Director", "Senior Executive", "Executive"].includes(currentUser.designation);
   const isAlumni = currentUser.memberStatus === "Alumni";
 

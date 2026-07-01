@@ -206,7 +206,7 @@ export default function BroadcastPage() {
         <div className="lg:col-span-5 space-y-10">
           
           {/* 1. Global Alert Bar (GB Only) */}
-          {isGB && (
+          {(isGB || isRDHead) && (
             <section className="space-y-6">
               <h2 className="font-serif text-2xl tracking-tight border-b border-border pb-2 flex items-center gap-3">
                 <Globe className="w-5 h-5 text-primary" /> Global Alert
@@ -450,7 +450,7 @@ export default function BroadcastPage() {
                             <span>{new Date(ann.createdAt).toLocaleDateString()}</span>
                           </div>
                         </div>
-                        {isGB && (
+                        {(isGB || isRDHead) && (
                           <Button 
                             variant="ghost" 
                             size="sm" 

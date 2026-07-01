@@ -11,7 +11,7 @@ import { useState, useMemo } from "react";
 import { toast } from "sonner";
 import { UserPlus, Mail, ShieldCheck, Edit3 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { isGoverningBody as checkGB } from "@/lib/permissions";
+import { isSuperUser as checkGB } from "@/lib/permissions";
 import {
   Sheet,
   SheetContent,

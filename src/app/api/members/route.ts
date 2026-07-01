@@ -4,6 +4,7 @@ import designations from "@/constants/designations";
 import dbConnect from "@/lib/dbConnect";
 import { NextResponse } from "next/server";
 import { MongoClient } from "mongodb";
+import { isSuperUser } from "@/lib/permissions";
 
 const client = new MongoClient(process.env.MONGODB_URI as string);
 const db = client.db(process.env.MONGODB_DB as string);
@@ -66,7 +67,7 @@ export async function GET(request: Request) {
   const ebView = ["Director", "Assistant Director", "Senior Executive", "Executive", "General Member"];
   const gbView = [...designations.map(d => d.title)];
 
-  const isGB = ["President", "Vice President", "General Secretary", "Treasurer"].includes(user.designation);
+  const isGB = isSuperUser(user);
   
   let view = ebView;
   if (user.designation === "Senior Executive") {

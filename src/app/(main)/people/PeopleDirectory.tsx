@@ -5,6 +5,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { Search, User as UserIcon, ArrowRight } from "lucide-react";
 import departments from "@/constants/departments";
+import RefreshButton from "@/components/public/RefreshButton";
 
 interface Member {
   id: string;
@@ -19,7 +20,13 @@ interface Member {
   currentJob?: string | null;
 }
 
-export default function PeopleDirectory({ initialMembers }: { initialMembers: Member[] }) {
+export default function PeopleDirectory({ 
+  initialMembers,
+  revalidateAction
+}: { 
+  initialMembers: Member[];
+  revalidateAction: () => Promise<void>;
+}) {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedDept, setSelectedDept] = useState("all");
   const [selectedStatus, setSelectedStatus] = useState("all");
@@ -46,9 +53,12 @@ export default function PeopleDirectory({ initialMembers }: { initialMembers: Me
         <p className="text-[10px] font-bold uppercase tracking-[0.3em] text-primary">
           BUCC Directory
         </p>
-        <h1 className="font-serif text-4xl md:text-5xl font-bold tracking-tight text-foreground">
-          People of BUCC
-        </h1>
+        <div className="flex items-center justify-center md:justify-start gap-3">
+          <h1 className="font-serif text-4xl md:text-5xl font-bold tracking-tight text-foreground">
+            People of BUCC
+          </h1>
+          <RefreshButton revalidateAction={revalidateAction} label="Members" />
+        </div>
         <p className="text-muted-foreground text-sm font-light max-w-xl leading-relaxed">
           Meet the engineers, designers, and organizers pushing the boundaries of BRAC University's technology community.
         </p>

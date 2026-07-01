@@ -72,7 +72,7 @@ export function Sidebar({ isOpen = false, onClose }: SidebarProps) {
   const isGB = ["president", "vice president", "vice-president", "general secretary", "treasurer"].includes(userDesignation) && !isAlumni;
   const isHRHead = userDept === "human resources" && ["director", "assistant director"].includes(userDesignation) && !isAlumni;
   const isRDAdmin = userDept === "research and development" && ["director", "assistant director"].includes(userDesignation) && !isAlumni;
-  const isPR = (userDept === "press release and publications" || isGB) && !isAlumni;
+  const isPR = (userDept === "press release and publications" || isGB || isRDAdmin) && !isAlumni;
   
   const canManagePR = isPR && [
     "president", "vice president", "vice-president", "general secretary", "treasurer",
@@ -85,7 +85,7 @@ export function Sidebar({ isOpen = false, onClose }: SidebarProps) {
     ["human resources", "governing body", "research and development"].includes(userDept) &&
     ["president", "vice president", "vice-president", "general secretary", "treasurer", "director", "assistant director"].includes(userDesignation) && !isAlumni;
 
-  const canManageData = isGB || isHRHead;
+  const canManageData = isGB || isHRHead || isRDAdmin;
   const canManageInquiries = isGB || isHRHead || isRDAdmin;
   const canManageProjects = isGB || isHRHead || isRDAdmin;
   

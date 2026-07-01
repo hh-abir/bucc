@@ -2,6 +2,7 @@ import departments from "@/constants/departments";
 import designations from "@/constants/designations";
 import { auth } from "@/auth";
 import { NextResponse } from "next/server";
+import { isSuperUser } from "@/lib/permissions";
 import { MongoClient } from "mongodb";
 
 const client = new MongoClient(process.env.MONGODB_URI as string);
@@ -31,7 +32,7 @@ export async function GET() {
   }
   
   const user = session.user as any;
-  const isGB = ["President", "Vice President", "General Secretary", "Treasurer"].includes(user.designation);
+  const isGB = isSuperUser(user);
   const isHR = user.buccDepartment === "Human Resources";
   const isDeptHead = ["Director", "Assistant Director"].includes(user.designation);
 

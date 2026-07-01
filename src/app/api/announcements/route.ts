@@ -2,7 +2,7 @@ import { auth } from "@/auth";
 import dbConnect from "@/lib/dbConnect";
 import Announcement from "@/model/Announcement";
 import { NextRequest, NextResponse } from "next/server";
-import { isGoverningBody } from "@/lib/permissions";
+import { isSuperUser } from "@/lib/permissions";
 
 export async function GET(request: NextRequest) {
   try {
@@ -29,11 +29,11 @@ export async function POST(request: NextRequest) {
     if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
     const user = session.user as any;
-    const isGB = isGoverningBody(user);
+    const isGB = isSuperUser(user);
     const isEB = ["Director", "Assistant Director", "Senior Executive", "Executive"].includes(user.designation);
 
     if (!isGB && !isEB) {
-      return NextResponse.json({ error: "Only GB and EB members can post announcements" }, { status: 403 });
+      return NextResponse.json({ error: "Only GB, R&D leaders, and EB members can post announcements" }, { status: 403 });
     }
 
     const body = await request.json();
@@ -65,9 +65,9 @@ export async function DELETE(request: NextRequest) {
     if (!id) return NextResponse.json({ error: "ID required" }, { status: 400 });
 
     const user = session.user as any;
-    const isGB = isGoverningBody(user);
+    const isGB = isSuperUser(user);
 
-    if (!isGB) return NextResponse.json({ error: "Only GB can delete announcements" }, { status: 403 });
+    if (!isGB) return NextResponse.json({ error: "Only GB and R&D leaders can delete announcements" }, { status: 403 });
 
     await dbConnect();
     await Announcement.findByIdAndDelete(id);

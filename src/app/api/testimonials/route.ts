@@ -4,6 +4,7 @@ import dbConnect from "@/lib/dbConnect";
 import Testimonial from "@/model/Testimonial";
 import User from "@/model/User";
 import { ObjectId } from "mongodb";
+import { isSuperUser } from "@/lib/permissions";
 
 export async function POST(request: NextRequest) {
   try {
@@ -15,7 +16,7 @@ export async function POST(request: NextRequest) {
     const currentUser = session.user as any;
     
     // Check if the current user is EB or Alumni
-    const isGB = ["President", "Vice President", "General Secretary", "Treasurer"].includes(currentUser.designation);
+    const isGB = isSuperUser(currentUser);
     const isEB = ["Director", "Assistant Director", "Senior Executive", "Executive"].includes(currentUser.designation);
     const isAlumni = currentUser.memberStatus === "Alumni";
 
@@ -70,7 +71,7 @@ export async function DELETE(request: NextRequest) {
     }
 
     const currentUser = session.user as any;
-    const isGB = ["President", "Vice President", "General Secretary", "Treasurer"].includes(currentUser.designation);
+    const isGB = isSuperUser(currentUser);
 
     await dbConnect();
 
