@@ -693,12 +693,6 @@ export default function HomePage({ initialEvents = [], initialProjects = [] }: {
                           <ChevronRight className="w-4 h-4" />
                         </button>
                       </div>
-                      <Link 
-                        href="/about" 
-                        className="inline-flex items-center gap-1 text-primary hover:underline font-bold uppercase text-[10px] tracking-widest"
-                      >
-                        View All Wings <ArrowRight className="w-3.5 h-3.5" />
-                      </Link>
                     </div>
                   </div>
                 </div>

@@ -33,7 +33,10 @@ export function Navbar() {
           setIsAtTop(true);
         } else {
           setIsAtTop(false);
-          if (currentScrollY > lastScrollY) {
+          if (isMobileMenuOpen) {
+            // Keep header visible while mobile drawer menu is open
+            setIsVisible(true);
+          } else if (currentScrollY > lastScrollY) {
             setIsVisible(false);
           } else {
             setIsVisible(true);
@@ -51,7 +54,7 @@ export function Navbar() {
         window.removeEventListener('scroll', controlNavbar);
       };
     }
-  }, [lastScrollY]);
+  }, [lastScrollY, isMobileMenuOpen]);
 
   return (
     <header className={cn(
