@@ -304,7 +304,7 @@ export default function HomePage({ initialEvents = [], initialProjects = [] }: {
           </div>
 
           <div className={useThreeColumnFallback ? "grid grid-cols-1 lg:grid-cols-3 gap-8" : "grid grid-cols-1 lg:grid-cols-12 gap-12 items-center"}>
-            <div className={useThreeColumnFallback ? "contents" : "lg:col-span-7 flex flex-col justify-between h-[500px]"}>
+            <div className={useThreeColumnFallback ? "contents" : "lg:col-span-7 flex flex-col gap-5 lg:gap-0 lg:justify-between lg:h-[500px]"}>
               
               {/* Dimension 1: MIND */}
               <motion.div 
@@ -448,7 +448,7 @@ export default function HomePage({ initialEvents = [], initialProjects = [] }: {
             {isWebGLSupported && (
               <div className={useThreeColumnFallback 
                 ? "hidden opacity-0 pointer-events-none w-0 h-0 overflow-hidden absolute" 
-                : "lg:col-span-5 h-[500px] w-full relative rounded-2xl overflow-hidden bg-card/10 border border-border/40 backdrop-blur-sm opacity-100 transition-all duration-700 animate-in fade-in zoom-in-95"
+                : "lg:col-span-5 h-[320px] md:h-[400px] lg:h-[500px] w-full relative rounded-2xl overflow-hidden bg-card/10 border border-border/40 backdrop-blur-sm opacity-100 transition-all duration-700 animate-in fade-in zoom-in-95"
               }>
                 <SplineModel 
                   scene="https://prod.spline.design/97MRBci3ZutLdKaH/scene.splinecode" 
