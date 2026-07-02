@@ -42,6 +42,16 @@ export default function EvaluationsPage() {
     enabled: sessionStatus === "authenticated",
   });
 
+  const { data: configData } = useQuery({
+    queryKey: ["recruitment-config"],
+    queryFn: async () => {
+      const res = await fetch("/api/config?key=recruitment_config");
+      if (!res.ok) return { allowSERecruitmentAccess: false };
+      const json = await res.json();
+      return json.value || { allowSERecruitmentAccess: false };
+    }
+  });
+
   // Calculate stats based on fetched data
   const stats = useMemo(() => {
     const statusWise: any = {
@@ -141,7 +151,9 @@ export default function EvaluationsPage() {
   if (isError) return <div className="p-8 text-center text-destructive">Failed to load evaluations.</div>;
 
   const user = session?.user as any;
-  const isPermitted = permittedDesignations.includes(user?.designation);
+  const isPermitted = 
+    permittedDesignations.includes(user?.designation) || 
+    (configData?.allowSERecruitmentAccess && user?.designation === "Senior Executive");
 
   if (!isPermitted) {
     return (

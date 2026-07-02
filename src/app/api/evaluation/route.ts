@@ -55,7 +55,7 @@ export async function POST(request: NextRequest) {
 export async function PATCH(request: NextRequest) {
   try {
     const body = await request.json();
-    const { _id, interviewTakenBy, modifiedBy, assignedDepartment, status, comment } = body;
+    const { _id, interviewTakenBy, modifiedBy, assignedDepartment, status, comment, assignedTasks } = body;
 
     await dbConnect();
     const evaluation = await EvaluationData.findById(_id);
@@ -69,6 +69,9 @@ export async function PATCH(request: NextRequest) {
     evaluation.interviewTakenBy = interviewTakenBy;
     evaluation.comment = comment;
     evaluation.modifiedBy = modifiedBy;
+    if (assignedTasks !== undefined) {
+      evaluation.assignedTasks = assignedTasks;
+    }
 
     await evaluation.save();
 

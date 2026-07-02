@@ -1,4 +1,5 @@
 import { hasAuth } from "@/helpers/hasAuth";
+import { getConfigValue } from "@/helpers/appConfigStore";
 import PreRegMember from "@/model/PreRegMember";
 import { NextResponse } from "next/server";
 
@@ -13,8 +14,14 @@ const permittedDesignations = [
 ];
 
 export async function GET() {
+  const config = await getConfigValue("recruitment_config", { allowSERecruitmentAccess: false });
+  const activeDesignations = [...permittedDesignations];
+  if (config?.allowSERecruitmentAccess) {
+    activeDesignations.push("Senior Executive");
+  }
+
   const { session, isPermitted } = await hasAuth(
-    permittedDesignations,
+    activeDesignations,
     permittedDepartments,
   );
 

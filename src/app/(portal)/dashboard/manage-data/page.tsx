@@ -254,6 +254,68 @@ export default function ManageDataPage() {
               </CardContent>
             </Card>
           ))}
+
+          {/* Wipe All Recruitment Data Card */}
+          <Card className="border-destructive/30 shadow-none bg-card overflow-hidden md:col-span-2">
+            <CardHeader className="pb-4">
+              <CardTitle className="text-xl font-serif text-destructive flex items-center gap-2">
+                <Trash2 className="w-5 h-5" /> Wipe All Recruitment Data
+              </CardTitle>
+              <CardDescription className="text-xs uppercase tracking-tight font-mono text-muted-foreground/60">
+                recruitment_all
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <p className="text-xs text-muted-foreground leading-relaxed">
+                This action will permanently erase all recruitment-related database records: both **Pre-Reg Members** (applications) and **Recruitment Evaluations** (including task submissions and notes). This action cannot be undone.
+              </p>
+              {isGB && (
+                <div className="pt-2">
+                  {flushConfirm === "recruitment_all" ? (
+                    <div className="p-4 bg-destructive/5 border border-destructive/10 rounded-md space-y-3 animate-in fade-in slide-in-from-top-2 duration-300">
+                      <div className="flex items-center gap-2 text-destructive font-bold text-[10px] uppercase tracking-widest">
+                        <AlertTriangle className="w-3.5 h-3.5" /> Confirm Permanent Wipe
+                      </div>
+                      <p className="text-xs text-muted-foreground">Type <span className="font-mono text-foreground font-bold">recruitment_all</span> below to permanently erase all recruitment data.</p>
+                      <Input 
+                        value={confirmInput}
+                        onChange={(e) => setConfirmInput(e.target.value)}
+                        placeholder="Type recruitment_all..."
+                        className="h-8 bg-transparent border-0 border-b border-destructive/30 rounded-none focus-visible:ring-0 focus-visible:border-destructive text-sm font-sans"
+                      />
+                      <div className="flex gap-2">
+                        <Button 
+                          variant="destructive" 
+                          size="sm" 
+                          className="flex-1 h-8 text-[10px] font-bold uppercase"
+                          onClick={() => handleFlush("recruitment_all")}
+                          disabled={loading === "flush-recruitment_all"}
+                        >
+                          {loading === "flush-recruitment_all" ? "Wiping..." : "Confirm Wipe All"}
+                        </Button>
+                        <Button 
+                          variant="ghost" 
+                          size="sm" 
+                          className="flex-1 h-8 text-[10px] font-bold uppercase"
+                          onClick={() => { setFlushConfirm(null); setConfirmInput(""); }}
+                        >
+                          Cancel
+                        </Button>
+                      </div>
+                    </div>
+                  ) : (
+                    <Button 
+                      variant="destructive" 
+                      className="w-full gap-2"
+                      onClick={() => setFlushConfirm("recruitment_all")}
+                    >
+                      <Trash2 className="w-4 h-4" /> Wipe Recruitment Data
+                    </Button>
+                  )}
+                </div>
+              )}
+            </CardContent>
+          </Card>
         </div>
       )}
 

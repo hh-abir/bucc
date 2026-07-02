@@ -46,15 +46,17 @@ import { Badge } from "@/components/ui/badge";
 import Link from "next/link";
 
 const getBroadcastData = async () => {
-  const [annRes, bannerRes, configRes] = await Promise.all([
+  const [annRes, bannerRes, configRes, tasksRes] = await Promise.all([
     fetch("/api/announcements"),
     fetch("/api/global-banner"),
-    fetch("/api/config?key=recruitment_config")
+    fetch("/api/config?key=recruitment_config"),
+    fetch("/api/config?key=recruitment_default_tasks")
   ]);
   
   const announcements = await annRes.json();
   const banner = await bannerRes.json();
   const config = await configRes.json();
+  const tasks = await tasksRes.json();
   
   return { 
     announcements, 
@@ -65,8 +67,12 @@ const getBroadcastData = async () => {
       isEvaluationOpen: false, 
       evaluationTargetDate: "",
       registrationMessage: "BUCC Recruitment Process is not ongoing. Please check our Facebook page for updates.",
-      evaluationMessage: "BUCC is not accepting any more evaluations. Please contact HR or GB."
-    } 
+      evaluationMessage: "BUCC is not accepting any more evaluations. Please contact HR or GB.",
+      allowSERecruitmentAccess: false,
+      isTasksPortalOpen: false,
+      tasksDeadline: ""
+    },
+    defaultTasks: tasks.value || {}
   };
 };
 
@@ -84,8 +90,33 @@ export default function BroadcastPage() {
     isEvaluationOpen: false,
     evaluationTargetDate: "",
     registrationMessage: "BUCC Recruitment Process is not ongoing. Please check our Facebook page for updates.",
-    evaluationMessage: "BUCC is not accepting any more evaluations. Please contact HR or GB."
+    evaluationMessage: "BUCC is not accepting any more evaluations. Please contact HR or GB.",
+    allowSERecruitmentAccess: false,
+    isTasksPortalOpen: false,
+    tasksDeadline: ""
   });
+
+  const departmentsList = [
+    "Governing Body",
+    "Communication and Marketing",
+    "Creative",
+    "Event Management",
+    "Finance",
+    "Human Resources",
+    "Press Release and Publications",
+    "Research and Development"
+  ];
+
+  const initialDeptTasks = departmentsList.reduce((acc, dept) => {
+    acc[dept] = [
+      { title: "", description: "" },
+      { title: "", description: "" }
+    ];
+    return acc;
+  }, {} as any);
+
+  const [selectedDept, setSelectedDept] = useState("Creative");
+  const [deptTasksForm, setDeptTasksForm] = useState<any>(initialDeptTasks);
 
   const { data, isLoading } = useQuery({
     queryKey: ["broadcast-center"],
@@ -143,6 +174,22 @@ export default function BroadcastPage() {
     },
   });
 
+  const defaultTasksMutation = useMutation({
+    mutationFn: async (payload: any) => {
+      const res = await fetch("/api/config", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ key: "recruitment_default_tasks", value: payload }),
+      });
+      if (!res.ok) throw new Error("Failed to update tasks");
+      return res.json();
+    },
+    onSuccess: () => {
+      toast.success("Department default tasks saved successfully!");
+      queryClient.invalidateQueries({ queryKey: ["broadcast-center"] });
+    },
+  });
+
   const deleteAnnouncementMutation = useMutation({
     mutationFn: async (id: string) => {
       const res = await fetch(`/api/announcements?id=${id}`, { method: "DELETE" });
@@ -169,6 +216,15 @@ export default function BroadcastPage() {
         ...prev,
         ...data.config
       }));
+    }
+    if (data?.defaultTasks) {
+      setDeptTasksForm(prev => {
+        const merged = { ...prev };
+        Object.keys(data.defaultTasks).forEach(k => {
+          merged[k] = data.defaultTasks[k];
+        });
+        return merged;
+      });
     }
   }, [data]);
 
@@ -345,6 +401,53 @@ export default function BroadcastPage() {
                       </div>
                     )}
                   </div>
+
+                  {/* Senior Executive Access Toggle */}
+                  {(isGB || isRDHead) && (
+                    <div className="space-y-4 pt-4 border-t border-border/50">
+                      <div className="flex items-center justify-between">
+                        <div className="space-y-0.5">
+                          <Label className="text-sm font-medium">Senior Executive Access</Label>
+                          <p className="text-[10px] text-muted-foreground uppercase tracking-wider">Allow Senior Executives to view & moderate recruitment</p>
+                        </div>
+                        <button 
+                          onClick={() => setLifecycleForm({...lifecycleForm, allowSERecruitmentAccess: !lifecycleForm.allowSERecruitmentAccess})}
+                          className={`h-6 w-11 rounded-full relative transition-colors ${lifecycleForm?.allowSERecruitmentAccess ? "bg-emerald-500" : "bg-muted"}`}
+                        >
+                          <div className={`absolute top-1 left-1 h-4 w-4 bg-white rounded-full transition-transform ${lifecycleForm?.allowSERecruitmentAccess ? "translate-x-5" : ""}`} />
+                        </button>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Tasks Submission Portal Toggles */}
+                  <div className="space-y-4 pt-4 border-t border-border/50">
+                    <div className="flex items-center justify-between">
+                      <div className="space-y-0.5">
+                        <Label className="text-sm font-medium">Tasks Submission Portal</Label>
+                        <p className="text-[10px] text-muted-foreground uppercase tracking-wider">Path: /tasks</p>
+                      </div>
+                      <button 
+                        onClick={() => setLifecycleForm({...lifecycleForm, isTasksPortalOpen: !lifecycleForm.isTasksPortalOpen})}
+                        className={`h-6 w-11 rounded-full relative transition-colors ${lifecycleForm?.isTasksPortalOpen ? "bg-emerald-500" : "bg-muted"}`}
+                      >
+                        <div className={`absolute top-1 left-1 h-4 w-4 bg-white rounded-full transition-transform ${lifecycleForm?.isTasksPortalOpen ? "translate-x-5" : ""}`} />
+                      </button>
+                    </div>
+                    {lifecycleForm?.isTasksPortalOpen && (
+                      <div className="space-y-4 animate-in fade-in duration-300 pl-4 border-l border-emerald-500/20">
+                        <div className="space-y-1.5">
+                          <Label className="text-[10px] uppercase font-bold text-muted-foreground">Submission Deadline</Label>
+                          <Input 
+                            type="datetime-local"
+                            value={lifecycleForm?.tasksDeadline || ""}
+                            onChange={e => setLifecycleForm({...lifecycleForm, tasksDeadline: e.target.value})}
+                            className="bg-muted/30 border-border h-9 text-xs"
+                          />
+                        </div>
+                      </div>
+                    )}
+                  </div>
                 </CardContent>
                 <DialogFooter className="p-6 pt-0">
                   <Button 
@@ -353,6 +456,118 @@ export default function BroadcastPage() {
                     onClick={() => configMutation.mutate(lifecycleForm)}
                   >
                     {configMutation.isPending ? "Updating Lifecycle..." : "Save Lifecycle Settings"}
+                  </Button>
+                </DialogFooter>
+              </Card>
+            </section>
+          )}
+
+          {/* Default Tasks Management Section (GB, R&D Only) */}
+          {(isGB || isRDHead) && (
+            <section className="space-y-6">
+              <h2 className="font-serif text-2xl tracking-tight border-b border-border pb-2 flex items-center gap-3">
+                <Activity className="w-5 h-5 text-primary" /> Manage Department Tasks
+              </h2>
+              <Card className="border-border shadow-none bg-card">
+                <CardHeader>
+                  <CardTitle className="text-lg">Department Default Tasks</CardTitle>
+                  <CardDescription className="text-xs">Configure the 2 default tasks that interviewers can quick-assign to candidates for each department.</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-6">
+                  <div className="space-y-2">
+                    <Label className="text-xs font-bold uppercase tracking-widest text-muted-foreground">Select Department</Label>
+                    <select
+                      value={selectedDept}
+                      onChange={(e) => setSelectedDept(e.target.value)}
+                      className="w-full px-3 py-2 border border-border rounded-md bg-background text-sm focus:outline-none focus:ring-1 focus:ring-primary cursor-pointer"
+                    >
+                      {departmentsList.map(dept => (
+                        <option key={dept} value={dept}>{dept}</option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-4 border-t border-border/50">
+                    {/* Task 1 */}
+                    <div className="space-y-4">
+                      <div className="flex items-center gap-2 border-b border-border pb-2">
+                        <span className="w-5 h-5 rounded-full bg-primary/10 text-primary text-[10px] font-bold flex items-center justify-center">1</span>
+                        <h4 className="text-xs font-bold uppercase tracking-wider">Default Task 1</h4>
+                      </div>
+                      <div className="space-y-1.5">
+                        <Label className="text-[10px] uppercase font-bold text-muted-foreground">Task Title</Label>
+                        <Input
+                          placeholder="e.g. Design a Recruitment Poster"
+                          value={deptTasksForm[selectedDept]?.[0]?.title || ""}
+                          onChange={(e) => {
+                            const updated = { ...deptTasksForm };
+                            if (!updated[selectedDept]) updated[selectedDept] = [{ title: "", description: "" }, { title: "", description: "" }];
+                            updated[selectedDept][0].title = e.target.value;
+                            setDeptTasksForm(updated);
+                          }}
+                          className="bg-muted/30 border-border h-9 text-xs font-sans"
+                        />
+                      </div>
+                      <div className="space-y-1.5">
+                        <Label className="text-[10px] uppercase font-bold text-muted-foreground">Task Description</Label>
+                        <Textarea
+                          placeholder="Task details and instructions..."
+                          value={deptTasksForm[selectedDept]?.[0]?.description || ""}
+                          onChange={(e) => {
+                            const updated = { ...deptTasksForm };
+                            if (!updated[selectedDept]) updated[selectedDept] = [{ title: "", description: "" }, { title: "", description: "" }];
+                            updated[selectedDept][0].description = e.target.value;
+                            setDeptTasksForm(updated);
+                          }}
+                          className="bg-muted/30 border-border h-24 text-xs resize-none font-sans"
+                        />
+                      </div>
+                    </div>
+
+                    {/* Task 2 */}
+                    <div className="space-y-4">
+                      <div className="flex items-center gap-2 border-b border-border pb-2">
+                        <span className="w-5 h-5 rounded-full bg-primary/10 text-primary text-[10px] font-bold flex items-center justify-center">2</span>
+                        <h4 className="text-xs font-bold uppercase tracking-wider">Default Task 2</h4>
+                      </div>
+                      <div className="space-y-1.5">
+                        <Label className="text-[10px] uppercase font-bold text-muted-foreground">Task Title</Label>
+                        <Input
+                          placeholder="e.g. Video Editing Prompt"
+                          value={deptTasksForm[selectedDept]?.[1]?.title || ""}
+                          onChange={(e) => {
+                            const updated = { ...deptTasksForm };
+                            if (!updated[selectedDept]) updated[selectedDept] = [{ title: "", description: "" }, { title: "", description: "" }];
+                            updated[selectedDept][1].title = e.target.value;
+                            setDeptTasksForm(updated);
+                          }}
+                          className="bg-muted/30 border-border h-9 text-xs font-sans"
+                        />
+                      </div>
+                      <div className="space-y-1.5">
+                        <Label className="text-[10px] uppercase font-bold text-muted-foreground">Task Description</Label>
+                        <Textarea
+                          placeholder="Task details and instructions..."
+                          value={deptTasksForm[selectedDept]?.[1]?.description || ""}
+                          onChange={(e) => {
+                            const updated = { ...deptTasksForm };
+                            if (!updated[selectedDept]) updated[selectedDept] = [{ title: "", description: "" }, { title: "", description: "" }];
+                            updated[selectedDept][1].description = e.target.value;
+                            setDeptTasksForm(updated);
+                          }}
+                          className="bg-muted/30 border-border h-24 text-xs resize-none font-sans"
+                        />
+                      </div>
+                    </div>
+                  </div>
+                </CardContent>
+                <DialogFooter className="p-6 pt-0">
+                  <Button 
+                    className="w-full bg-foreground text-background py-5 font-bold uppercase text-[10px] tracking-widest"
+                    disabled={defaultTasksMutation.isPending}
+                    onClick={() => defaultTasksMutation.mutate(deptTasksForm)}
+                  >
+                    {defaultTasksMutation.isPending ? "Saving Tasks..." : "Save Default Tasks"}
                   </Button>
                 </DialogFooter>
               </Card>

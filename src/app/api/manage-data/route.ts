@@ -153,7 +153,20 @@ export async function DELETE(request: NextRequest) {
     const url = new URL(request.url);
     const model = url.searchParams.get("model");
 
-    if (!model || !FLUSHABLE_MODELS.includes(model.toLowerCase())) {
+    if (!model) {
+      return NextResponse.json({ error: "Missing model parameter" }, { status: 400 });
+    }
+
+    if (model.toLowerCase() === "recruitment_all") {
+      await dbConnect();
+      const preregResult = await db.collection("preregmembers").deleteMany({});
+      const evalResult = await db.collection("evaluationdatas").deleteMany({});
+      return NextResponse.json({ 
+        message: `Successfully wiped recruitment data. Deleted ${preregResult.deletedCount} prereg records and ${evalResult.deletedCount} evaluation records.` 
+      });
+    }
+
+    if (!FLUSHABLE_MODELS.includes(model.toLowerCase())) {
       return NextResponse.json({ error: "Cannot flush this model or collection is protected" }, { status: 400 });
     }
 

@@ -1,4 +1,5 @@
 import { hasAuth } from "@/helpers/hasAuth";
+import { getConfigValue } from "@/helpers/appConfigStore";
 import dbConnect from "@/lib/dbConnect";
 import PreRegMember from "@/model/PreRegMember";
 import { NextResponse } from "next/server";
@@ -13,12 +14,22 @@ const permittedDesignations = [
   "Assistant Director",
 ];
 
+async function getActiveDesignations() {
+  const config = await getConfigValue("recruitment_config", { allowSERecruitmentAccess: false });
+  const active = [...permittedDesignations];
+  if (config?.allowSERecruitmentAccess) {
+    active.push("Senior Executive");
+  }
+  return active;
+}
+
 export async function PATCH(
   request: Request,
   { params }: { params: Promise<{ id: string }> },
 ) {
+  const activeDesignations = await getActiveDesignations();
   const { session, isPermitted } = await hasAuth(
-    permittedDesignations,
+    activeDesignations,
     permittedDepartments,
   );
 
@@ -59,8 +70,9 @@ export async function GET(
   request: Request,
   { params }: { params: Promise<{ id: string }> },
 ) {
+  const activeDesignations = await getActiveDesignations();
   const { session, isPermitted } = await hasAuth(
-    permittedDesignations,
+    activeDesignations,
     permittedDepartments,
   );
 

@@ -50,6 +50,20 @@ const EvaluationDataSchema = new mongoose.Schema({
   modifiedBy: {
     type: String,
   },
+  assignedTasks: {
+    type: [
+      {
+        department: { type: String, required: true },
+        title: { type: String, required: true },
+        description: { type: String, required: true },
+        status: { type: String, enum: ["pending", "submitted"], default: "pending" },
+        driveLink: { type: String },
+        githubLink: { type: String },
+        submittedAt: { type: Date },
+      }
+    ],
+    default: [],
+  },
 });
 
 const EvaluationData =

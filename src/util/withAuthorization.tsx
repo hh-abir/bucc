@@ -13,8 +13,16 @@ const withAuthorization = (
 ) => {
   return function AuthWrapper(props: any) {
     const { data: sessionData, status: sessionStatus } = useSession();
+    const [config, setConfig] = React.useState<any>(null);
 
-    if (sessionStatus === "loading") {
+    React.useEffect(() => {
+      fetch("/api/config?key=recruitment_config")
+        .then(res => res.json())
+        .then(data => setConfig(data.value || { allowSERecruitmentAccess: false }))
+        .catch(() => setConfig({ allowSERecruitmentAccess: false }));
+    }, []);
+
+    if (sessionStatus === "loading" || config === null) {
       return <SpinnerComponent />;
     }
 
@@ -58,9 +66,14 @@ const withAuthorization = (
     const departmentCheck =
       permittedDepartment && userDepartment === permittedDepartment;
 
+    const activeDesignations = [...(permittedDesignations || [])];
+    if (config?.allowSERecruitmentAccess) {
+      activeDesignations.push("Senior Executive");
+    }
+
     const designationCheck =
-      permittedDesignations?.length > 0 &&
-      permittedDesignations.includes(userDesignation);
+      activeDesignations?.length > 0 &&
+      activeDesignations.includes(userDesignation);
 
     if (
       !user ||
