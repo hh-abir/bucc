@@ -142,12 +142,21 @@ export default function EditProfile() {
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label className="text-[10px] uppercase font-bold text-muted-foreground">Blood Group</Label>
-                  <Input 
-                    value={formData.bloodGroup} 
+                  <select
+                    value={formData.bloodGroup}
                     onChange={(e) => setFormData({...formData, bloodGroup: e.target.value})}
-                    placeholder="e.g. A+"
-                    className="bg-transparent border-0 border-b border-border rounded-none px-0 focus-visible:ring-0 focus-visible:border-primary transition-colors text-lg"
-                  />
+                    className="w-full bg-transparent border-0 border-b border-border rounded-none px-0 py-1.5 focus-visible:ring-0 focus-visible:border-primary transition-colors text-lg cursor-pointer outline-none dark:bg-card"
+                  >
+                    <option value="" disabled className="bg-card">Select Blood Group</option>
+                    <option value="A+" className="bg-card">A+</option>
+                    <option value="A-" className="bg-card">A-</option>
+                    <option value="B+" className="bg-card">B+</option>
+                    <option value="B-" className="bg-card">B-</option>
+                    <option value="AB+" className="bg-card">AB+</option>
+                    <option value="AB-" className="bg-card">AB-</option>
+                    <option value="O+" className="bg-card">O+</option>
+                    <option value="O-" className="bg-card">O-</option>
+                  </select>
                 </div>
                 <div className="space-y-2">
                   <Label className="text-[10px] uppercase font-bold text-muted-foreground">Gender</Label>

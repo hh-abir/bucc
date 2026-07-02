@@ -5,6 +5,7 @@ import { useCreateBlockNote } from "@blocknote/react";
 import { BlockNoteView } from "@blocknote/mantine";
 import "@blocknote/mantine/style.css";
 import { useTheme } from "next-themes";
+import { toast } from "sonner";
 
 interface BlockNoteEditorProps {
   initialValue?: any;
@@ -17,6 +18,10 @@ export default function BlockNoteEditor({ initialValue, onChange }: BlockNoteEdi
   // Initialize the editor
   const editor = useCreateBlockNote({
     initialContent: initialValue && initialValue.length > 0 ? initialValue : undefined,
+    uploadFile: async () => {
+      toast.error("Direct file uploads are disabled. Please use the 'Embed Image' tab / URL option.");
+      throw new Error("Direct file uploads are disabled.");
+    }
   });
 
   return (

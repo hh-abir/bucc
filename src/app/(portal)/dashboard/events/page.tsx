@@ -4,8 +4,7 @@ import { authClient } from "@/lib/auth-client";
 import { canManageEvents } from "@/lib/permissions";
 import { useState, useEffect } from "react";
 import { toast } from "sonner";
-import { Plus, Pencil, Trash2, Calendar, MapPin, Users, Upload, X } from "lucide-react";
-import { uploadImage } from "@/lib/client-cloudinary";
+import { Plus, Pencil, Trash2, Calendar, MapPin, Users, X } from "lucide-react";
 import Image from "next/image";
 
 interface Event {
@@ -177,23 +176,6 @@ function EventForm({ event, onClose, onSuccess }: { event: Event | null, onClose
     registrationLink: event?.registrationLink || "",
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [isUploading, setIsUploading] = useState(false);
-
-  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-
-    setIsUploading(true);
-    try {
-      const url = await uploadImage(file, "events");
-      setFormData({ ...formData, featuredImage: url });
-      toast.success("Image uploaded successfully");
-    } catch (error) {
-      toast.error("Failed to upload image");
-    } finally {
-      setIsUploading(false);
-    }
-  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -226,52 +208,33 @@ function EventForm({ event, onClose, onSuccess }: { event: Event | null, onClose
         <h2 className="text-2xl font-serif font-bold mb-6">{event ? "Edit Event" : "Create New Event"}</h2>
         <form onSubmit={handleSubmit} className="space-y-6">
           <div className="space-y-2">
-            <label className="text-sm font-medium">Featured Image</label>
-            <div className="flex flex-col gap-4">
-              {formData.featuredImage ? (
-                <div className="relative h-48 w-full rounded-md overflow-hidden border border-border">
-                  <Image 
-                    src={formData.featuredImage} 
-                    alt="Preview" 
-                    fill 
-                    sizes="(max-width: 768px) 100vw, 672px"
-                    className="object-cover"
-                  />
-                  <button 
-                    type="button"
-                    onClick={() => setFormData({ ...formData, featuredImage: "" })}
-                    className="absolute top-2 right-2 p-1 bg-background/80 rounded-full hover:bg-background transition-colors"
-                  >
-                    <X className="w-4 h-4" />
-                  </button>
-                </div>
-              ) : (
-                <div className="flex items-center justify-center w-full">
-                  <label className="flex flex-col items-center justify-center w-full h-48 border-2 border-border border-dashed rounded-lg cursor-pointer bg-muted/30 hover:bg-muted/50 transition-colors">
-                    <div className="flex flex-col items-center justify-center pt-5 pb-6">
-                      {isUploading ? (
-                        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" />
-                      ) : (
-                        <>
-                          <Upload className="w-8 h-8 mb-4 text-muted-foreground" />
-                          <p className="mb-2 text-sm text-muted-foreground">
-                            <span className="font-semibold">Click to upload</span> or drag and drop
-                          </p>
-                          <p className="text-xs text-muted-foreground">SVG, PNG, JPG (MAX. 800x400px)</p>
-                        </>
-                      )}
-                    </div>
-                    <input 
-                      type="file" 
-                      className="hidden" 
-                      accept="image/*"
-                      onChange={handleImageUpload}
-                      disabled={isUploading}
-                    />
-                  </label>
-                </div>
-              )}
-            </div>
+            <label className="text-sm font-medium">Featured Image URL</label>
+            <input 
+              type="text"
+              placeholder="https://images.unsplash.com/photo-..."
+              value={formData.featuredImage}
+              onChange={e => setFormData({...formData, featuredImage: e.target.value})}
+              className="w-full px-3 py-2 border border-border rounded-md bg-background text-sm focus:outline-none focus:ring-1 focus:ring-primary placeholder:text-muted-foreground/30"
+            />
+            {formData.featuredImage && (
+              <div className="relative h-48 w-full rounded-md overflow-hidden border border-border mt-2">
+                <Image 
+                  src={formData.featuredImage} 
+                  alt="Preview" 
+                  fill 
+                  sizes="(max-width: 768px) 100vw, 672px"
+                  className="object-cover"
+                  onError={(e) => { (e.target as any).src = ""; }}
+                />
+                <button 
+                  type="button"
+                  onClick={() => setFormData({ ...formData, featuredImage: "" })}
+                  className="absolute top-2 right-2 p-1 bg-background/80 rounded-full hover:bg-background transition-colors"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              </div>
+            )}
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -320,7 +283,7 @@ function EventForm({ event, onClose, onSuccess }: { event: Event | null, onClose
           </div>
           <div className="flex justify-end gap-4 pt-4 border-t border-border">
             <button type="button" onClick={onClose} className="px-4 py-2 hover:bg-muted rounded-md transition-colors">Cancel</button>
-            <button disabled={isSubmitting || isUploading} type="submit" className="px-6 py-2 bg-primary text-primary-foreground rounded-md font-medium hover:opacity-90 transition-opacity disabled:opacity-50">
+            <button disabled={isSubmitting} type="submit" className="px-6 py-2 bg-primary text-primary-foreground rounded-md font-medium hover:opacity-90 transition-opacity disabled:opacity-50">
               {isSubmitting ? "Saving..." : (event ? "Update Event" : "Create Event")}
             </button>
           </div>

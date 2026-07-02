@@ -8,10 +8,28 @@ export default function LogoutPage() {
   const router = useRouter();
 
   useEffect(() => {
-    authClient.signOut().then(() => {
-      router.push("/");
-      router.refresh();
-    });
+    let redirected = false;
+
+    const handleRedirect = () => {
+      if (!redirected) {
+        redirected = true;
+        router.push("/");
+        router.refresh();
+      }
+    };
+
+    // Perform sign out
+    authClient.signOut()
+      .then(handleRedirect)
+      .catch((err) => {
+        console.error("Sign out error:", err);
+        handleRedirect();
+      });
+
+    // Fallback: Redirect after 1.5 seconds if the request hangs/takes too long
+    const timer = setTimeout(handleRedirect, 1500);
+
+    return () => clearTimeout(timer);
   }, [router]);
 
   return (

@@ -128,3 +128,19 @@ The portal supports light and dark themes using `next-themes`.
 To populate realistic test data (such as mock projects) during local development:
 * **Project Seeding Script:** Located at `scripts/seed-projects.js`.
 * **Execution:** Run `node scripts/seed-projects.js` from the workspace root (requires a populated `.env` with `MONGODB_URI` and `MONGODB_DB`). This will check database connectivity, verify existing user references, delete previous seed elements, and upload 3 fully formatted approved/featured projects.
+
+### 4. Caching & Revalidation Policy
+To ensure fast loading times and reduce database load, public-facing pages utilize Incremental Static Regeneration (ISR) and on-demand cache revalidation:
+* **Home Page (`/`):** Uses an ISR fallback timer (`export const revalidate = 3600;` - 1 hour) to regularly refresh events and featured projects.
+* **On-Demand Cache Purging:** Successful CRUD actions (creation, edit, deletion) on resources like projects via API routes call `revalidatePath` for the home page `/`, listings `/projects`, and specific details `/projects/[slug]` to instantly invalidate the cache and make updates live.
+* **Manual Refresh:** Pages such as `/projects` include a `RefreshButton` component that calls a server action triggering `revalidatePath` for public views.
+
+### 5. Media Management & Photo Upload Scope
+To control storage constraints and maintain database health, the platform divides image handling into two categories:
+* **Allowed Uploads:** Direct local file upload is exclusively enabled for User Profile Photos, User Public Profile Cover Photos, and the Admin Carousel background slides.
+* **Embed Only:** All other cover images (Blogs, Events, Projects, Press Releases) are URL text fields (embedding). Additionally, the inline rich-text editor (BlockNote) rejects direct file uploads (raising an alert toast) to force URL embeds and prevent database bloat from base64 files.
+
+### 6. User Experience & Session Resiliency
+* **Logout Resiliency:** The `/logout` page handles Client-Side Sign-Out and redirects to the home page `/` immediately on response. It features a `1.5-second` fallback timer to force redirection even if the session api hangs due to slow network connections.
+* **Predefined Select Inputs:** Fields that must be sanitized (such as Blood Group and Gender) use select dropdown components (restricting values to standard groups like `A+`, `A-`, etc.) to prevent malformed text inputs in the member directory.
+

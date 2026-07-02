@@ -8,6 +8,7 @@ export async function revalidateBlogs() {
 }
 
 export async function revalidateProjects() {
+  revalidatePath("/");
   revalidatePath("/projects");
   revalidatePath("/projects/[slug]", "page");
 }

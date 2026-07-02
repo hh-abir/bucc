@@ -4,6 +4,8 @@ import Event from "@/model/Event";
 import Project from "@/model/Project";
 import User from "@/model/User";
 
+export const revalidate = 3600; // Revalidate page every hour
+
 export default async function Page() {
   await dbConnect();
   

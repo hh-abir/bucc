@@ -50,6 +50,8 @@ Manages the BUCC Project Showcase.
   - Members can only edit their own `pending` projects (once approved, they cannot edit content).
   - Toggling `isFeatured` is strictly restricted to **Governing Body (GB)** and **R&D Admin** (`isSuperUser`) members. Attempting to toggle it without these roles returns `403 Forbidden`.
 
+- **Cache Invalidation:** Any successful `POST`, `PATCH`, or `DELETE` request automatically triggers Next.js cache revalidation for the home page `/`, the gallery list page `/projects`, and the specific project slug page `/projects/[slug]` on-demand, ensuring changes are immediately reflected.
+
 ---
 
 ## Blogs (`/api/blogs` & `/api/blogs/[id]`)
@@ -213,3 +215,26 @@ Submits the written assessment.
 - **Validation:** 
   1. **Server-Side Gate:** Checks `isEvaluationOpen` from config. Returns `403` if closed.
 - **Data Shape:** Extracts essential metadata (studentId, name, email) and stores the dynamic questionnaire answers in the `responseObject` field.
+
+---
+
+## File Uploads (`/api/upload`)
+
+Restricted image uploading endpoint utilizing Cloudinary integration.
+
+### `POST /api/upload`
+Uploads a local image file to Cloudinary.
+- **Query Params:** `?type=[profile | cover | carousel]`
+  - `profile`: Uploads to the `bucc-profiles` folder.
+  - `cover`: Uploads to the `bucc-covers` folder.
+  - `carousel`: Uploads to the `bucc-carousel` folder.
+  - *(Default)*: Uploads to the `bucc-blogs` folder (legacy/internal editor uploads).
+- **Constraints & Rules:**
+  - **Allowed Mime Types:** `image/jpeg`, `image/png`, `image/gif`, `image/webp`, `image/svg+xml`, `image/jpg`.
+  - **Size Limit:** Maximum file size is 5MB.
+  - **Scope Policy:** Direct file upload interfaces are restricted strictly to:
+    - User Profile Photo uploads
+    - User Public Profile Cover Photo uploads
+    - Dashboard Banner / Hero Carousel uploads
+  - All other image fields (such as Event featured images, Blog cover images, Project cover images, and Press Release cover images) and rich-text inline editor images must be embedded via URL instead of being directly uploaded.
+

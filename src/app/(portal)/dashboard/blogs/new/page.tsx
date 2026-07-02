@@ -34,7 +34,7 @@ export default function NewBlogPage() {
   const handleSubmit = async (e: React.FormEvent, targetStatus: "draft" | "submit") => {
     e.preventDefault();
     if (!formData.featuredImage) {
-      toast.error("Please upload a featured image");
+      toast.error("Please enter a cover image URL");
       return;
     }
     if (!formData.title) {

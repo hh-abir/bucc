@@ -67,7 +67,7 @@ export default function EditBlogPage({ params }: { params: Promise<{ id: string 
   const handleSubmit = async (e: React.FormEvent, targetStatus: "draft" | "submit" | "published") => {
     e.preventDefault();
     if (!formData.featuredImage) {
-      toast.error("Please upload a featured image");
+      toast.error("Please enter a cover image URL");
       return;
     }
 

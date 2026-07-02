@@ -3,6 +3,7 @@ import dbConnect from "@/lib/dbConnect";
 import Project from "@/model/Project";
 import { auth } from "@/lib/auth";
 import { headers } from "next/headers";
+import { revalidatePath } from "next/cache";
 import { canManageProjects, isSuperUser } from "@/lib/permissions";
 
 export const runtime = "nodejs";
@@ -117,6 +118,10 @@ export async function POST(request: Request) {
       status,
     });
 
+    revalidatePath("/");
+    revalidatePath("/projects");
+    revalidatePath("/projects/[slug]", "page");
+
     return NextResponse.json({ message: "Project submitted successfully", project: newProject });
   } catch (error) {
     if ((error as any).code === 11000) {
@@ -182,6 +187,10 @@ export async function PATCH(request: Request) {
 
     const updatedProject = await Project.findByIdAndUpdate(id, updateData, { new: true });
 
+    revalidatePath("/");
+    revalidatePath("/projects");
+    revalidatePath("/projects/[slug]", "page");
+
     return NextResponse.json(updatedProject);
   } catch (error) {
     return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
@@ -219,6 +228,10 @@ export async function DELETE(request: Request) {
     }
 
     await Project.findByIdAndDelete(id);
+
+    revalidatePath("/");
+    revalidatePath("/projects");
+    revalidatePath("/projects/[slug]", "page");
 
     return NextResponse.json({ message: "Project deleted successfully" });
   } catch (error) {

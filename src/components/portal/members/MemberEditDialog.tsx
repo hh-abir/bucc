@@ -357,13 +357,25 @@ export default function MemberEditDialog({
                 <div className="space-y-1.5">
                   <Label className="text-[10px] uppercase font-bold text-muted-foreground">Blood Group</Label>
                   <div className="relative">
-                    <Droplet className="absolute left-0 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground/40" />
-                    <Input 
+                    <Droplet className="absolute left-0 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground/40 z-10" />
+                    <Select 
                       value={formData.bloodGroup || ""} 
-                      onChange={(e) => setFormData({...formData, bloodGroup: e.target.value})}
-                      className="bg-transparent border-0 border-b border-border rounded-none pl-6 px-0 h-9"
-                      placeholder="e.g. O+"
-                    />
+                      onValueChange={(val) => setFormData({...formData, bloodGroup: val})}
+                    >
+                      <SelectTrigger className="w-full h-9 bg-transparent border-0 border-b border-border rounded-none pl-6 px-0 focus:ring-0">
+                        <SelectValue placeholder="Select Blood Group" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="A+">A+</SelectItem>
+                        <SelectItem value="A-">A-</SelectItem>
+                        <SelectItem value="B+">B+</SelectItem>
+                        <SelectItem value="B-">B-</SelectItem>
+                        <SelectItem value="AB+">AB+</SelectItem>
+                        <SelectItem value="AB-">AB-</SelectItem>
+                        <SelectItem value="O+">O+</SelectItem>
+                        <SelectItem value="O-">O-</SelectItem>
+                      </SelectContent>
+                    </Select>
                   </div>
                 </div>
 
