@@ -354,7 +354,7 @@ export default function ManageDataPage() {
   };
 
   const handleFlush = async (collection: string) => {
-    if (confirmInput !== collection) {
+    if (confirmInput.trim().toLowerCase() !== collection.trim().toLowerCase()) {
       toast.error("Collection name mismatch. Flush aborted.");
       return;
     }

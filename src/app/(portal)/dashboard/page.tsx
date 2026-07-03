@@ -6,7 +6,7 @@ import { isGoverningBody, canManageEvents, canManageMembers } from "@/lib/permis
 import Link from "next/link";
 import SpinnerComponent from "@/components/SpinnerComponent";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { 
   Plus, 
   Megaphone, 
@@ -40,6 +40,43 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+
+function EventCountdown({ dateStr }: { dateStr: string }) {
+  const [timeLeft, setTimeLeft] = useState("");
+
+  useEffect(() => {
+    const calculateTime = () => {
+      const difference = +new Date(dateStr) - +new Date();
+      if (difference <= 0) {
+        setTimeLeft("Started");
+        return;
+      }
+
+      const days = Math.floor(difference / (1000 * 60 * 60 * 24));
+      const hours = Math.floor((difference / (1000 * 60 * 60)) % 24);
+      const minutes = Math.floor((difference / 1000 / 60) % 60);
+
+      const parts = [];
+      if (days > 0) parts.push(`${days}d`);
+      if (hours > 0) parts.push(`${hours}h`);
+      if (minutes > 0) parts.push(`${minutes}m`);
+
+      setTimeLeft(parts.slice(0, 2).join(" ") + " left");
+    };
+
+    calculateTime();
+    const interval = setInterval(calculateTime, 60000);
+    return () => clearInterval(interval);
+  }, [dateStr]);
+
+  if (timeLeft === "Started" || !timeLeft) return null;
+
+  return (
+    <span className="text-[9px] font-bold uppercase tracking-wider text-primary bg-primary/5 px-2 py-0.5 rounded-full border border-primary/10 animate-pulse">
+      {timeLeft}
+    </span>
+  );
+}
 
 const getDashboardData = async () => {
   const [annRes, eventsRes, bannerRes] = await Promise.all([
@@ -202,7 +239,62 @@ export default function Dashboard() {
                 <h2 className="font-serif text-2xl tracking-tight">Announcements</h2>
               </div>
               
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-3">
+                {canPost && (
+                  <Dialog open={isPostOpen} onOpenChange={setIsPostOpen}>
+                    <DialogTrigger asChild>
+                      <Button variant="outline" size="sm" className="text-xs font-serif flex items-center gap-1.5 border-border hover:border-primary/20 bg-card">
+                        <Plus className="w-3.5 h-3.5" /> Post
+                      </Button>
+                    </DialogTrigger>
+                    <DialogContent className="sm:max-w-md border-border bg-background text-left">
+                      <DialogHeader>
+                        <DialogTitle className="font-serif text-xl">New Announcement</DialogTitle>
+                        <DialogDescription className="text-xs">
+                          Broadcast a notice to all club members on their dashboards.
+                        </DialogDescription>
+                      </DialogHeader>
+                      <div className="space-y-4 py-4">
+                        <div className="space-y-1">
+                          <Label htmlFor="title" className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Title</Label>
+                          <Input 
+                            id="title" 
+                            placeholder="e.g. Mandatory General Meeting"
+                            value={newNotice.title}
+                            onChange={(e) => setNewNotice({ ...newNotice, title: e.target.value })}
+                            className="text-sm bg-card border-border"
+                          />
+                        </div>
+                        <div className="space-y-1">
+                          <Label htmlFor="content" className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Notice Content</Label>
+                          <Textarea 
+                            id="content" 
+                            placeholder="Write your announcement details here..."
+                            value={newNotice.content}
+                            onChange={(e) => setNewNotice({ ...newNotice, content: e.target.value })}
+                            className="text-sm bg-card border-border min-h-[120px] resize-none"
+                          />
+                        </div>
+                      </div>
+                      <DialogFooter>
+                        <Button 
+                          variant="outline" 
+                          onClick={() => setIsPostOpen(false)}
+                          className="text-xs uppercase tracking-widest font-bold"
+                        >
+                          Cancel
+                        </Button>
+                        <Button 
+                          onClick={() => mutation.mutate(newNotice)}
+                          disabled={mutation.isPending || !newNotice.title || !newNotice.content}
+                          className="text-xs uppercase tracking-widest font-bold"
+                        >
+                          {mutation.isPending ? "Posting..." : "Publish"}
+                        </Button>
+                      </DialogFooter>
+                    </DialogContent>
+                  </Dialog>
+                )}
                 <Dialog>
                   <DialogTrigger>
                     <button className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground hover:text-foreground underline underline-offset-4 decoration-1">
@@ -297,7 +389,10 @@ export default function Dashboard() {
                         </p>
                       </div>
                       <div className="flex items-center justify-between mt-2">
-                        <span className="text-[10px] font-bold uppercase tracking-widest px-2 py-0.5 bg-muted rounded-full">{new Date(event.startingDate).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}</span>
+                        <div className="flex items-center gap-2">
+                          <span className="text-[10px] font-bold uppercase tracking-widest px-2 py-0.5 bg-muted rounded-full">{new Date(event.startingDate).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}</span>
+                          <EventCountdown dateStr={event.startingDate} />
+                        </div>
                         <Link href={`/events/${event._id}`} className="text-[10px] font-bold uppercase tracking-widest text-foreground flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-all translate-x-2 group-hover:translate-x-0">
                           Details <ArrowRight className="w-3 h-3" />
                         </Link>
