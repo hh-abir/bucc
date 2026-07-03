@@ -8,6 +8,8 @@ import { ArrowLeft, Trash2 } from "lucide-react";
 import Link from "next/link";
 import dynamic from "next/dynamic";
 
+import { isSuperUser } from "@/lib/permissions";
+
 const BlockNoteEditor = dynamic(() => import("@/components/BlockNoteEditor"), { 
   ssr: false,
   loading: () => <div className="h-[500px] w-full bg-muted animate-pulse rounded-md border border-border" />
@@ -26,9 +28,19 @@ export default function NewPressReleasePage() {
 
   const user = session?.user as any;
   const isAlumni = user?.memberStatus === "Alumni";
-  const isGB = ["President", "Vice President", "General Secretary", "Treasurer"].includes(user?.designation) && !isAlumni;
+  const isSuper = user ? isSuperUser(user) : false;
   const isPRModerator = user?.buccDepartment === "Press Release and Publications" && ["Director", "Assistant Director"].includes(user?.designation) && !isAlumni;
-  const isManager = isGB || isPRModerator;
+  const isPRSE = user?.buccDepartment === "Press Release and Publications" && user?.designation === "Senior Executive" && !isAlumni;
+  const isManager = isSuper || isPRModerator;
+
+  if (!isSuper && !isPRModerator && !isPRSE) {
+    return (
+      <div className="flex flex-col items-center justify-center h-[50vh] text-center space-y-2">
+        <h2 className="text-2xl font-serif font-medium">Access Denied</h2>
+        <p className="text-muted-foreground">You do not have permission to write press releases.</p>
+      </div>
+    );
+  }
 
   const handleSubmit = async (e: React.FormEvent, targetStatus: "draft" | "submit") => {
     e.preventDefault();

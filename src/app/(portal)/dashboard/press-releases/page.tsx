@@ -9,7 +9,7 @@ import Link from "next/link";
 import { FileText, Plus, Edit, Trash2, Check, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { isGoverningBody as checkGB } from "@/lib/permissions";
+import { isGoverningBody as checkGB, isSuperUser } from "@/lib/permissions";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 
@@ -34,11 +34,11 @@ export default function PressReleaseManagementPage() {
 
   const user = session?.user as any;
   const isAlumni = user?.memberStatus === "Alumni";
-  const isGB = user ? checkGB(user) : false;
+  const isSuper = user ? isSuperUser(user) : false;
   const isPRModerator = !isAlumni && user?.buccDepartment === "Press Release and Publications" && ["Director", "Assistant Director"].includes(user?.designation);
   const isPRSE = !isAlumni && user?.buccDepartment === "Press Release and Publications" && user?.designation === "Senior Executive";
 
-  if (!isGB && !isPRModerator && !isPRSE) {
+  if (!isSuper && !isPRModerator && !isPRSE) {
     return (
       <div className="flex flex-col items-center justify-center h-[50vh] text-center space-y-2">
         <h2 className="text-2xl font-serif font-medium">Access Denied</h2>
@@ -140,8 +140,8 @@ export default function PressReleaseManagementPage() {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {filteredReleases.map((release: any) => {
           const isAuthor = release.author?.authorId?.toString() === user?.id;
-          const canEdit = isGB || isPRModerator || (isAuthor && release.status !== "published");
-          const canDelete = isGB || isPRModerator || (isAuthor && release.status !== "published");
+          const canEdit = isSuper || isPRModerator || (isAuthor && release.status !== "published");
+          const canDelete = isSuper || isPRModerator || (isAuthor && release.status !== "published");
 
           return (
             <div key={release._id} className="group border border-border bg-card rounded-md overflow-hidden hover:shadow-md transition-all flex flex-col h-full">
@@ -179,7 +179,7 @@ export default function PressReleaseManagementPage() {
                     {new Date(release.createdDate).toLocaleDateString()}
                   </span>
                   <div className="flex items-center gap-2">
-                    {(isGB || isPRModerator) && release.status === "pending" && (
+                    {(isSuper || isPRModerator) && release.status === "pending" && (
                       <Button 
                         variant="ghost" 
                         size="sm" 

@@ -2,7 +2,7 @@ import { auth } from "@/auth";
 import dbConnect from "@/lib/dbConnect";
 import PressRelease from "@/model/PressRelease";
 import { NextRequest, NextResponse } from "next/server";
-import { isGoverningBody as checkGB } from "@/lib/permissions";
+import { isSuperUser } from "@/lib/permissions";
 
 export async function GET(request: NextRequest) {
   try {
@@ -22,11 +22,11 @@ export async function GET(request: NextRequest) {
         if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
         const isAlumni = user?.memberStatus === "Alumni";
-        const isGB = checkGB(user);
+        const isSuper = isSuperUser(user);
         const isPRDept = !isAlumni && user.buccDepartment === "Press Release and Publications";
         const isAuthor = release.author?.authorId?.toString() === user.id;
 
-        if (!isGB && !(isPRDept && ["Director", "Assistant Director", "Senior Executive"].includes(user.designation)) && !isAuthor) {
+        if (!isSuper && !(isPRDept && ["Director", "Assistant Director", "Senior Executive"].includes(user.designation)) && !isAuthor) {
           return NextResponse.json({ error: "Forbidden" }, { status: 403 });
         }
       }
@@ -42,12 +42,12 @@ export async function GET(request: NextRequest) {
     }
 
     const isAlumni = user?.memberStatus === "Alumni";
-    const isGB = checkGB(user);
+    const isSuper = isSuperUser(user);
     const isPRModerator = !isAlumni && user.buccDepartment === "Press Release and Publications" && ["Director", "Assistant Director"].includes(user.designation);
     const isPRSE = !isAlumni && user.buccDepartment === "Press Release and Publications" && user.designation === "Senior Executive";
 
-    if (isGB || isPRModerator) {
-      // GB and PR Directors can see everything
+    if (isSuper || isPRModerator) {
+      // Superadmins and PR Directors can see everything
       const releases = await PressRelease.find({}).sort({ createdDate: -1 });
       return NextResponse.json(releases);
     } else if (isPRSE) {
@@ -76,11 +76,11 @@ export async function POST(request: NextRequest) {
 
     const user = session.user as any;
     const isAlumni = user?.memberStatus === "Alumni";
-    const isGB = checkGB(user);
+    const isSuper = isSuperUser(user);
     const isPRModerator = !isAlumni && user.buccDepartment === "Press Release and Publications" && ["Director", "Assistant Director"].includes(user.designation);
     const isPRSE = !isAlumni && user.buccDepartment === "Press Release and Publications" && user.designation === "Senior Executive";
 
-    if (!isGB && !isPRModerator && !isPRSE) {
+    if (!isSuper && !isPRModerator && !isPRSE) {
       return NextResponse.json({ error: "Forbidden: You are not authorized to write Press Releases" }, { status: 403 });
     }
 
@@ -91,13 +91,13 @@ export async function POST(request: NextRequest) {
 
     // Determine status:
     // - If saved explicitly as "draft", keep it "draft".
-    // - Otherwise: if user is GB or PR Director/AD, set to "published".
+    // - Otherwise: if user is Super or PR Director/AD, set to "published".
     // - If user is PR SE, set to "pending".
     let prStatus = "pending";
     if (status === "draft") {
       prStatus = "draft";
     } else {
-      prStatus = (isGB || isPRModerator) ? "published" : "pending";
+      prStatus = (isSuper || isPRModerator) ? "published" : "pending";
     }
 
     const newRelease = new PressRelease({
@@ -127,11 +127,12 @@ export async function PATCH(request: NextRequest) {
 
     const user = session.user as any;
     const isAlumni = user?.memberStatus === "Alumni";
-    const isGB = checkGB(user);
+    const isSuper = isSuperUser(user);
     const isPRModerator = !isAlumni && user.buccDepartment === "Press Release and Publications" && ["Director", "Assistant Director"].includes(user.designation);
-    const isPRSE = !isAlumni && user.buccDepartment === "Press Release and Publications" && user.designation === "Senior Executive";
 
-    if (!isGB && !isPRModerator && !isPRSE) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+    if (!isSuper && !isPRModerator && user.buccDepartment !== "Press Release and Publications") {
+      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+    }
 
     const url = new URL(request.url);
     const id = url.searchParams.get("id");
@@ -144,9 +145,9 @@ export async function PATCH(request: NextRequest) {
     const isAuthor = release.author?.authorId?.toString() === user.id;
 
     // Permissions logic:
-    // - Moderators (GB, PR Directors) can edit/approve any.
+    // - Moderators (Super, PR Directors) can edit/approve any.
     // - PR SE (Authors) can edit their own only if it's draft or pending.
-    if (!isGB && !isPRModerator) {
+    if (!isSuper && !isPRModerator) {
       if (!isAuthor) return NextResponse.json({ error: "Forbidden: You do not own this Press Release" }, { status: 403 });
       if (release.status === "published") {
         return NextResponse.json({ error: "Forbidden: Cannot edit an already published Press Release" }, { status: 403 });
@@ -158,7 +159,7 @@ export async function PATCH(request: NextRequest) {
 
     const updateData: any = { ...updates };
 
-    if (isGB || isPRModerator) {
+    if (isSuper || isPRModerator) {
       if (status !== undefined) {
         updateData.status = status;
       }
@@ -190,11 +191,12 @@ export async function DELETE(request: NextRequest) {
 
     const user = session.user as any;
     const isAlumni = user?.memberStatus === "Alumni";
-    const isGB = checkGB(user);
+    const isSuper = isSuperUser(user);
     const isPRModerator = !isAlumni && user.buccDepartment === "Press Release and Publications" && ["Director", "Assistant Director"].includes(user.designation);
-    const isPRSE = !isAlumni && user.buccDepartment === "Press Release and Publications" && user.designation === "Senior Executive";
 
-    if (!isGB && !isPRModerator && !isPRSE) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+    if (!isSuper && !isPRModerator && user.buccDepartment !== "Press Release and Publications") {
+      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+    }
 
     const url = new URL(request.url);
     const id = url.searchParams.get("id");
@@ -208,7 +210,7 @@ export async function DELETE(request: NextRequest) {
 
     // SE (Author) can delete their own if draft or pending.
     // Moderators can delete any.
-    if (!isGB && !isPRModerator) {
+    if (!isSuper && !isPRModerator) {
       if (!isAuthor) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
       if (release.status === "published") {
         return NextResponse.json({ error: "Forbidden: Cannot delete an already published Press Release" }, { status: 403 });
