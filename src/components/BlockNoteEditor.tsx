@@ -9,10 +9,12 @@ import { toast } from "sonner";
 
 interface BlockNoteEditorProps {
   initialValue?: any;
-  onChange: (content: any) => void;
+  onChange?: (content: any) => void;
+  editable?: boolean;
+  minHeight?: string;
 }
 
-export default function BlockNoteEditor({ initialValue, onChange }: BlockNoteEditorProps) {
+export default function BlockNoteEditor({ initialValue, onChange, editable = true, minHeight = "200px" }: BlockNoteEditorProps) {
   const { resolvedTheme } = useTheme();
 
   // Initialize the editor
@@ -25,12 +27,41 @@ export default function BlockNoteEditor({ initialValue, onChange }: BlockNoteEdi
   });
 
   return (
-    <div className="min-h-[500px] border border-border rounded-md bg-background overflow-hidden py-4">
+    <div className={editable ? "border border-border rounded-md bg-background overflow-hidden py-4" : "py-2 bg-transparent"} style={{ minHeight: editable ? minHeight : "auto" }}>
+      <style dangerouslySetInnerHTML={{ __html: `
+        /* Hide upload tab button in BlockNote panels */
+        .mantine-Tabs-tab[value="upload"],
+        [role="tab"][value="upload"],
+        button[value="upload"],
+        .bn-file-panel-tab[data-tab="upload"],
+        [data-tab="upload"],
+        .mantine-Tabs-tabList > button:first-of-type,
+        [role="tablist"] > button:first-of-type {
+          display: none !important;
+        }
+
+        /* Hide upload panel content */
+        .mantine-Tabs-panel[value="upload"],
+        [role="tabpanel"][value="upload"],
+        [data-tab-panel="upload"] {
+          display: none !important;
+        }
+
+        /* Force embed panel content to show */
+        .mantine-Tabs-panel[value="embed"],
+        [role="tabpanel"][value="embed"],
+        [data-tab-panel="embed"] {
+          display: block !important;
+        }
+      ` }} />
       <BlockNoteView
         editor={editor}
         theme={resolvedTheme === "dark" ? "dark" : "light"}
+        editable={editable}
         onChange={() => {
-          onChange(editor.document);
+          if (onChange) {
+            onChange(editor.document);
+          }
         }}
       />
     </div>

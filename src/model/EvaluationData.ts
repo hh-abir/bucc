@@ -44,7 +44,7 @@ const EvaluationDataSchema = new mongoose.Schema({
     default: [],
   },
   comment: {
-    type: String,
+    type: mongoose.Schema.Types.Mixed,
     default: "",
   },
   modifiedBy: {
@@ -55,7 +55,7 @@ const EvaluationDataSchema = new mongoose.Schema({
       {
         department: { type: String, required: true },
         title: { type: String, required: true },
-        description: { type: String, required: true },
+        description: { type: mongoose.Schema.Types.Mixed, required: true },
         status: { type: String, enum: ["pending", "submitted"], default: "pending" },
         driveLink: { type: String },
         githubLink: { type: String },

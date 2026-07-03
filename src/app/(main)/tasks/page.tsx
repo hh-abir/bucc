@@ -22,6 +22,9 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge";
 
 import SpinnerComponent from "@/components/SpinnerComponent";
+import dynamic from "next/dynamic";
+
+const BlockNoteEditor = dynamic(() => import("@/components/BlockNoteEditor"), { ssr: false });
 
 interface Task {
   department: string;
@@ -359,9 +362,16 @@ export default function TasksPortalPage() {
                   {/* Task Instructions */}
                   <div className="space-y-3">
                     <h3 className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Instructions & Description</h3>
-                    <p className="text-sm font-light text-muted-foreground leading-relaxed whitespace-pre-wrap bg-muted/10 p-4 rounded-xl border border-border/30">
-                      {currentTask.description}
-                    </p>
+                    <div className="text-sm font-light text-muted-foreground leading-relaxed bg-muted/10 p-4 rounded-xl border border-border/30 overflow-hidden">
+                      {typeof currentTask.description === "string" ? (
+                        <p className="whitespace-pre-wrap">{currentTask.description}</p>
+                      ) : (
+                        <BlockNoteEditor
+                          initialValue={currentTask.description}
+                          editable={false}
+                        />
+                      )}
+                    </div>
                   </div>
 
                   {/* Submission Info / Form */}

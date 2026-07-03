@@ -98,26 +98,63 @@ export default function EvaluationsPage() {
   }, [evaluations, filters]);
 
   const columns = [
-    { header: "Student ID", accessorKey: "studentId" },
-    { header: "Name", accessorKey: "name" },
+    { 
+      header: "Student ID", 
+      accessorKey: "studentId",
+      cell: ({ getValue }: { getValue: () => string }) => (
+        <span className="font-mono text-xs font-semibold text-muted-foreground">{getValue()}</span>
+      )
+    },
+    { 
+      header: "Name", 
+      accessorKey: "name",
+      cell: ({ getValue }: { getValue: () => string }) => (
+        <span className="font-medium text-sm text-foreground">{getValue()}</span>
+      )
+    },
     {
       header: "Status",
       accessorKey: "status",
       cell: ({ getValue }: { getValue: () => string }) => {
         const status = getValue() || "Pending";
+        let colorClasses = "bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border-indigo-500/20";
+        if (status === "Accepted") {
+          colorClasses = "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20";
+        } else if (status === "Pending") {
+          colorClasses = "bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/20";
+        } else if (status === "Rejected") {
+          colorClasses = "bg-rose-500/10 text-rose-600 dark:text-rose-400 border-rose-500/20";
+        }
         return (
-          <Badge variant={status}>
+          <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold border ${colorClasses}`}>
             {status}
-          </Badge>
+          </span>
         );
       },
     },
-    { header: "Department", accessorKey: "buccDepartment" },
+    { 
+      header: "Department", 
+      accessorKey: "buccDepartment",
+      cell: ({ getValue }: { getValue: () => string }) => {
+        const dept = getValue();
+        if (!dept) return <span className="text-muted-foreground italic text-xs">Not Assigned</span>;
+        return (
+          <span className="font-semibold text-xs bg-muted border border-border px-2.5 py-0.5 rounded text-foreground">
+            {dept}
+          </span>
+        );
+      }
+    },
     { 
       header: "Submission", 
       accessorKey: "submissionDate",
       cell: ({ getValue }: { getValue: () => string }) => {
-        return getValue() ? new Date(getValue()).toLocaleDateString() : "N/A";
+        const val = getValue();
+        return (
+          <span className="text-xs text-muted-foreground font-medium">
+            {val ? new Date(val).toLocaleDateString("en-US", { dateStyle: "medium" }) : "N/A"}
+          </span>
+        );
       }
     },
   ];

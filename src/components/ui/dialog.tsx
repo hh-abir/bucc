@@ -36,11 +36,20 @@ export function DialogTrigger({ children }: { children: React.ReactNode }) {
   );
 }
 
+import { createPortal } from "react-dom";
+
 export function DialogContent({ className, children, ...props }: React.HTMLAttributes<HTMLDivElement>) {
   const context = React.useContext(DialogContext);
-  if (!context?.open) return null;
+  const [mounted, setMounted] = React.useState(false);
 
-  return (
+  React.useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  if (!context?.open) return null;
+  if (!mounted) return null;
+
+  return createPortal(
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-background/80 p-4 backdrop-blur-sm animate-in fade-in duration-200">
       <div 
         className="fixed inset-0 z-[-1]" 
@@ -56,7 +65,8 @@ export function DialogContent({ className, children, ...props }: React.HTMLAttri
           <span className="sr-only">Close</span>
         </button>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }
 

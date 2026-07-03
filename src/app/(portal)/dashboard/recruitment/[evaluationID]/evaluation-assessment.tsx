@@ -12,7 +12,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { departmentsInfo } from "@/constants/departments";
 import EBs from "@/constants/ebs";
@@ -20,7 +19,20 @@ import { useSession } from "next-auth/react";
 import { useParams } from "next/navigation";
 import { useState, useEffect } from "react";
 import { toast } from "sonner";
-import { Trash2, ExternalLink, FileText, CheckCircle2, ShieldAlert } from "lucide-react";
+import { Trash2, ExternalLink, FileText, CheckCircle2, ShieldAlert, PlusCircle, Maximize2 } from "lucide-react";
+import dynamic from "next/dynamic";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+  DialogDescription,
+  DialogFooter
+} from "@/components/ui/dialog";
+
+// Dynamically import BlockNoteEditor to prevent SSR compilation issues
+const BlockNoteEditor = dynamic(() => import("@/components/BlockNoteEditor"), { ssr: false });
 
 const EB_OPTIONS: Option[] = EBs.map((eb: any) => ({
   label: eb.fullName,
@@ -35,7 +47,25 @@ export default function EvaluationAssessment({ evaluationData }: any) {
   const [loading, setLoading] = useState(false);
   const [department, setDepartment] = useState(evaluationData.buccDepartment || "");
   const [status, setStatus] = useState(evaluationData.status || "Pending");
-  const [comment, setComment] = useState(evaluationData.comment || "");
+  
+  // Safe initialization of BlockNote comment state
+  const initialComment = (() => {
+    if (!evaluationData.comment) return undefined;
+    if (typeof evaluationData.comment === "string") {
+      try {
+        return JSON.parse(evaluationData.comment);
+      } catch {
+        return [{
+          type: "paragraph",
+          content: [{ type: "text", text: evaluationData.comment, styles: {} }]
+        }];
+      }
+    }
+    return evaluationData.comment;
+  })();
+  const [comment, setComment] = useState<any>(initialComment);
+  const [isCommentsDialogOpen, setIsCommentsDialogOpen] = useState(false);
+
   const [selectedEBs, setSelectedEBs] = useState<Option[]>(
     evaluationData.interviewTakenBy?.map((eb: string) => ({
       label: eb,
@@ -48,17 +78,17 @@ export default function EvaluationAssessment({ evaluationData }: any) {
   const [assignedTasks, setAssignedTasks] = useState<any[]>(evaluationData.assignedTasks || []);
 
   // Form state for assigning a task
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [taskDept, setTaskDept] = useState("Creative");
   const [taskTitle, setTaskTitle] = useState("");
-  const [taskDesc, setTaskDesc] = useState("");
+  const [taskDesc, setTaskDesc] = useState<any>(undefined);
 
   const user = session?.user as any;
   const userDept = user?.buccDepartment || "";
   const userDesignation = user?.designation || "";
 
-  const isGB = ["President", "Vice President", "General Secretary", "Treasurer"].includes(userDesignation);
-  const isRDAdmin = userDept === "Research and Development" && ["Director", "Assistant Director"].includes(userDesignation);
-  const isSuper = isGB || isRDAdmin;
+  const isSuper = ["President", "Vice President", "General Secretary", "Treasurer"].includes(userDesignation) ||
+    (userDept === "Research and Development" && ["Director", "Assistant Director"].includes(userDesignation));
 
   useEffect(() => {
     const fetchConfigs = async () => {
@@ -92,12 +122,18 @@ export default function EvaluationAssessment({ evaluationData }: any) {
     return isDeptHead || isSE;
   };
 
+  const convertToBlocks = (text: string) => {
+    return [{
+      type: "paragraph",
+      content: [{ type: "text", text, styles: {} }]
+    }];
+  };
+
   const handleAssignTask = () => {
-    if (!taskTitle || !taskDesc) {
+    if (!taskTitle || !taskDesc || taskDesc.length === 0) {
       toast.error("Task Title and Description are required");
       return;
     }
-    // Check if task for this department is already assigned
     const exists = assignedTasks.some(t => t.department === taskDept);
     if (exists) {
       toast.error(`A task for the ${taskDept} department is already assigned.`);
@@ -113,7 +149,8 @@ export default function EvaluationAssessment({ evaluationData }: any) {
 
     setAssignedTasks([...assignedTasks, newTask]);
     setTaskTitle("");
-    setTaskDesc("");
+    setTaskDesc(undefined);
+    setIsDialogOpen(false);
     toast.success("Task added locally. Click 'Update Assessment' to save.");
   };
 
@@ -154,7 +191,6 @@ export default function EvaluationAssessment({ evaluationData }: any) {
     }
   }
 
-  // Load standard department list filtered by user authorization
   const assignableDepts = isSuper 
     ? departmentsInfo.map(d => d.name)
     : departmentsInfo.map(d => d.name).filter(name => name === userDept);
@@ -211,22 +247,163 @@ export default function EvaluationAssessment({ evaluationData }: any) {
               className="bg-transparent border-0 border-b border-border rounded-none px-0 min-h-[40px] focus-within:border-primary transition-colors"
               badgeClassName="bg-primary/10 text-primary border-primary/20 hover:bg-primary/20"
             />
-            <p className="text-[10px] text-muted-foreground mt-1">Select multiple members who conducted the interview.</p>
           </div>
 
           <div className="space-y-1.5">
-            <Label className="text-xs font-bold uppercase tracking-widest text-muted-foreground">Admin Comments</Label>
-            <Textarea
-              value={comment}
-              onChange={(e) => setComment(e.target.value)}
-              placeholder="Internal notes..."
-              className="min-h-[150px] bg-transparent border border-border rounded-sm focus-visible:ring-0 focus-visible:border-primary transition-colors text-sm resize-y p-3"
-            />
+            <div className="flex justify-between items-center">
+              <Label className="text-xs font-bold uppercase tracking-widest text-muted-foreground">Admin Comments (Rich Text)</Label>
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                className="h-6 w-6 p-0 hover:bg-muted text-muted-foreground hover:text-foreground"
+                onClick={() => setIsCommentsDialogOpen(true)}
+                title="Open in full screen dialog"
+              >
+                <Maximize2 className="w-3.5 h-3.5" />
+              </Button>
+            </div>
+            <div className="mt-1 h-[120px] overflow-y-auto border border-border rounded-md bg-muted/10 p-2 text-xs">
+              {comment && comment.length > 0 ? (
+                <BlockNoteEditor
+                  key={`comments-preview-${isCommentsDialogOpen}`}
+                  initialValue={comment}
+                  editable={false}
+                />
+              ) : (
+                <p className="text-muted-foreground italic p-2 text-center select-none">No comments yet. Click maximize to write notes.</p>
+              )}
+            </div>
           </div>
 
           {/* Assigned Tasks Section */}
           <div className="pt-4 border-t border-border/50 space-y-4">
-            <Label className="text-xs font-bold uppercase tracking-widest text-muted-foreground">Assigned Tasks</Label>
+            <div className="flex justify-between items-center">
+              <Label className="text-xs font-bold uppercase tracking-widest text-muted-foreground">Assigned Tasks</Label>
+              
+              {/* Task Assignment Modal Trigger */}
+              {assignableDepts.length > 0 &&
+                <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+                  <DialogTrigger>
+                    <Button 
+                      type="button" 
+                      variant="outline" 
+                      size="sm" 
+                      className="h-8 text-xs gap-1 border-primary/20 text-primary bg-primary/5 hover:bg-primary hover:text-white transition-all font-sans font-medium"
+                    >
+                      <PlusCircle className="w-3.5 h-3.5" /> Assign Task
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent className="max-w-3xl border-border bg-card">
+                    <DialogHeader>
+                      <DialogTitle className="text-xl font-serif">Assign Recruitment Task</DialogTitle>
+                      <DialogDescription className="text-xs">
+                        Configure a custom task or select from configured default presets for this candidate.
+                      </DialogDescription>
+                    </DialogHeader>
+                    <div className="space-y-4 py-4 max-h-[70vh] overflow-y-auto pr-1">
+                      {/* Form inputs */}
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div className="space-y-1.5">
+                          <Label className="text-[10px] uppercase font-bold text-muted-foreground">For Department</Label>
+                          {isSuper ? (
+                            <select
+                              value={taskDept}
+                              onChange={(e) => setTaskDept(e.target.value)}
+                              className="w-full px-3 py-2 border border-border rounded-md bg-background text-xs font-sans focus:outline-none focus:ring-1 focus:ring-primary cursor-pointer"
+                            >
+                              {departmentsInfo.map(d => (
+                                <option key={d.name} value={d.name}>{d.name}</option>
+                              ))}
+                            </select>
+                          ) : (
+                            <div className="text-xs font-semibold px-3 py-2 bg-muted rounded border border-border text-foreground font-sans">
+                              {userDept}
+                            </div>
+                          )}
+                        </div>
+                        <div className="space-y-1.5">
+                          <Label className="text-[10px] uppercase font-bold text-muted-foreground">Task Title</Label>
+                          <Input
+                            placeholder="e.g. Design Recruitment Poster"
+                            value={taskTitle}
+                            onChange={(e) => setTaskTitle(e.target.value)}
+                            className="bg-background border-border text-xs font-sans h-9"
+                          />
+                        </div>
+                      </div>
+
+                      {/* Default tasks quick-assign buttons */}
+                      {(defaultTask1?.title || defaultTask2?.title) &&
+                        <div className="space-y-1.5 bg-muted/20 p-3 rounded-lg border border-border/40">
+                          <Label className="text-[10px] uppercase font-bold text-muted-foreground">Quick Select Default Tasks</Label>
+                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 mt-1">
+                            {defaultTask1?.title && (
+                              <Button
+                                type="button"
+                                variant="outline"
+                                size="sm"
+                                className="h-8 justify-start text-[10px] font-sans border-border truncate"
+                                onClick={() => {
+                                  setTaskTitle(defaultTask1.title);
+                                  setTaskDesc(convertToBlocks(defaultTask1.description));
+                                }}
+                              >
+                                <FileText className="w-3.5 h-3.5 mr-2 text-primary" /> {defaultTask1.title}
+                              </Button>
+                            )}
+                            {defaultTask2?.title && (
+                              <Button
+                                type="button"
+                                variant="outline"
+                                size="sm"
+                                className="h-8 justify-start text-[10px] font-sans border-border truncate"
+                                onClick={() => {
+                                  setTaskTitle(defaultTask2.title);
+                                  setTaskDesc(convertToBlocks(defaultTask2.description));
+                                }}
+                              >
+                                <FileText className="w-3.5 h-3.5 mr-2 text-primary" /> {defaultTask2.title}
+                              </Button>
+                            )}
+                          </div>
+                        </div>
+                      }
+
+                      <div className="space-y-1.5">
+                        <Label className="text-[10px] uppercase font-bold text-muted-foreground">Task Details & Description (Rich Text Editor)</Label>
+                        <div className="mt-1">
+                          <BlockNoteEditor
+                            key={`${taskDept}-${taskTitle}`}
+                            initialValue={taskDesc}
+                            onChange={(json) => setTaskDesc(json)}
+                            minHeight="200px"
+                          />
+                        </div>
+                      </div>
+                    </div>
+                    <DialogFooter className="border-t border-border/30 pt-4 flex gap-2">
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setIsDialogOpen(false)}
+                      >
+                        Cancel
+                      </Button>
+                      <Button
+                        type="button"
+                        size="sm"
+                        onClick={handleAssignTask}
+                      >
+                        Add Assignment
+                      </Button>
+                    </DialogFooter>
+                  </DialogContent>
+                </Dialog>
+              }
+            </div>
+
             {assignedTasks.length === 0 ? (
               <p className="text-xs text-muted-foreground italic">No tasks assigned yet.</p>
             ) : (
@@ -241,7 +418,7 @@ export default function EvaluationAssessment({ evaluationData }: any) {
                             {task.department}
                           </span>
                           <h4 className="text-xs font-bold mt-1 text-foreground">
-                            {visible ? task.title : "Task details hidden"}
+                            {task.title}
                           </h4>
                         </div>
                         <button
@@ -256,10 +433,17 @@ export default function EvaluationAssessment({ evaluationData }: any) {
 
                       {visible ? (
                         <>
-                          <p className="text-[11px] text-muted-foreground font-light line-clamp-3">
-                            {task.description}
-                          </p>
-                          <div className="flex items-center justify-between pt-1 border-t border-border/50 text-[10px]">
+                          <div className="text-[11px] text-muted-foreground font-light leading-relaxed">
+                            {typeof task.description === "string" ? (
+                              <p className="whitespace-pre-wrap">{task.description}</p>
+                            ) : (
+                              <BlockNoteEditor
+                                initialValue={task.description}
+                                editable={false}
+                              />
+                            )}
+                          </div>
+                          <div className="flex items-center justify-between pt-1.5 border-t border-border/40 text-[10px]">
                             <span className={`font-semibold ${task.status === "submitted" ? "text-emerald-600" : "text-amber-600"}`}>
                               {task.status === "submitted" ? "Submitted" : "Pending"}
                             </span>
@@ -297,101 +481,6 @@ export default function EvaluationAssessment({ evaluationData }: any) {
               </div>
             )}
           </div>
-
-          {/* Task Assignment Form */}
-          {assignableDepts.length > 0 && (
-            <div className="pt-4 border-t border-border/50 space-y-4">
-              <Label className="text-xs font-bold uppercase tracking-widest text-muted-foreground">Assign New Task</Label>
-              
-              <div className="space-y-3 bg-muted/20 p-4 rounded-md border border-border/50">
-                <div className="space-y-1">
-                  <Label className="text-[10px] uppercase font-bold text-muted-foreground">For Department</Label>
-                  {isSuper ? (
-                    <select
-                      value={taskDept}
-                      onChange={(e) => setTaskDept(e.target.value)}
-                      className="w-full px-3 py-1.5 border border-border rounded-md bg-background text-xs focus:outline-none focus:ring-1 focus:ring-primary cursor-pointer font-sans"
-                    >
-                      {departmentsInfo.map(d => (
-                        <option key={d.name} value={d.name}>{d.name}</option>
-                      ))}
-                    </select>
-                  ) : (
-                    <div className="text-xs font-medium px-3 py-1.5 bg-muted rounded border border-border text-foreground font-sans">
-                      {userDept}
-                    </div>
-                  )}
-                </div>
-
-                {/* Default tasks quick-assign buttons */}
-                {(defaultTask1?.title || defaultTask2?.title) && (
-                  <div className="space-y-1">
-                    <Label className="text-[10px] uppercase font-bold text-muted-foreground">Quick Assign Default Tasks</Label>
-                    <div className="flex flex-col gap-2">
-                      {defaultTask1?.title && (
-                        <Button
-                          type="button"
-                          variant="outline"
-                          size="sm"
-                          className="h-8 justify-start text-[10px] font-sans border-border"
-                          onClick={() => {
-                            setTaskTitle(defaultTask1.title);
-                            setTaskDesc(defaultTask1.description);
-                          }}
-                        >
-                          <FileText className="w-3 h-3 mr-2 text-primary" /> {defaultTask1.title}
-                        </Button>
-                      )}
-                      {defaultTask2?.title && (
-                        <Button
-                          type="button"
-                          variant="outline"
-                          size="sm"
-                          className="h-8 justify-start text-[10px] font-sans border-border"
-                          onClick={() => {
-                            setTaskTitle(defaultTask2.title);
-                            setTaskDesc(defaultTask2.description);
-                          }}
-                        >
-                          <FileText className="w-3 h-3 mr-2 text-primary" /> {defaultTask2.title}
-                        </Button>
-                      )}
-                    </div>
-                  </div>
-                )}
-
-                <div className="space-y-1">
-                  <Label className="text-[10px] uppercase font-bold text-muted-foreground">Task Title</Label>
-                  <Input
-                    placeholder="e.g. Design Recruitment Poster"
-                    value={taskTitle}
-                    onChange={(e) => setTaskTitle(e.target.value)}
-                    className="h-8 bg-background border-border text-xs font-sans"
-                  />
-                </div>
-
-                <div className="space-y-1">
-                  <Label className="text-[10px] uppercase font-bold text-muted-foreground">Task Description</Label>
-                  <Textarea
-                    placeholder="Task details and expectations..."
-                    value={taskDesc}
-                    onChange={(e) => setTaskDesc(e.target.value)}
-                    className="min-h-[80px] bg-background border-border text-xs resize-none p-2 font-sans"
-                  />
-                </div>
-
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  className="w-full text-[10px] font-bold uppercase tracking-wider"
-                  onClick={handleAssignTask}
-                >
-                  Add Assignment
-                </Button>
-              </div>
-            </div>
-          )}
         </div>
 
         <LoadingButton
@@ -408,6 +497,34 @@ export default function EvaluationAssessment({ evaluationData }: any) {
             Last modified by {evaluationData.modifiedBy}
           </p>
         )}
+
+        {/* Fullscreen Comments Dialog */}
+        <Dialog open={isCommentsDialogOpen} onOpenChange={setIsCommentsDialogOpen}>
+          <DialogContent className="max-w-4xl border-border bg-card">
+            <DialogHeader>
+              <DialogTitle className="text-xl font-serif">Admin Comments</DialogTitle>
+              <DialogDescription className="text-xs">
+                Write and format detailed recruitment interview notes.
+              </DialogDescription>
+            </DialogHeader>
+            <div className="py-2">
+              <BlockNoteEditor
+                key={`comments-dialog-${isCommentsDialogOpen}`}
+                initialValue={comment}
+                onChange={(json) => setComment(json)}
+                minHeight="400px"
+              />
+            </div>
+            <DialogFooter className="border-t border-border/30 pt-4">
+              <Button
+                type="button"
+                onClick={() => setIsCommentsDialogOpen(false)}
+              >
+                Close & Save
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
       </CardContent>
     </Card>
   );

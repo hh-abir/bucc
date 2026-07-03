@@ -218,7 +218,7 @@ export default function BroadcastPage() {
       }));
     }
     if (data?.defaultTasks) {
-      setDeptTasksForm(prev => {
+      setDeptTasksForm((prev: any) => {
         const merged = { ...prev };
         Object.keys(data.defaultTasks).forEach(k => {
           merged[k] = data.defaultTasks[k];
