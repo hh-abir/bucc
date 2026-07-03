@@ -75,7 +75,7 @@ export default function PressReleasesPublicPage() {
                         <img 
                           src={release.featuredImage} 
                           alt={release.title} 
-                          className="w-full h-full object-cover grayscale transition-all duration-700 group-hover:scale-105 group-hover:grayscale-0" 
+                          className="w-full h-full object-cover transition-all duration-700 group-hover:scale-105" 
                         />
                       ) : (
                         <div className="w-full h-full flex items-center justify-center bg-muted/50 transition-transform duration-700 group-hover:scale-105">
