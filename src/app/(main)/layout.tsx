@@ -3,6 +3,7 @@ import { AnnouncementBar } from "@/components/ui/AnnouncementBar";
 import Footer from "@/components/Footer";
 import ScrollToTop from "@/components/ui/ScrollToTop";
 import AnalyticsTracker from "@/components/AnalyticsTracker";
+import Preloader from "@/components/public/Preloader";
 
 export default function MainLayout({
   children,
@@ -11,6 +12,7 @@ export default function MainLayout({
 }>) {
   return (
     <>
+      <Preloader />
       <AnalyticsTracker />
       <AnnouncementBar />
       <Navbar />

@@ -120,10 +120,29 @@ export default function HomePage({ initialEvents = [], initialProjects = [] }: {
   const [isWebGLSupported, setIsWebGLSupported] = React.useState(true);
   const [isSplineLoaded, setIsSplineLoaded] = React.useState(false);
   const [useThreeColumnFallback, setUseThreeColumnFallback] = React.useState(true);
+  const [scrollY, setScrollY] = React.useState(0);
 
   React.useEffect(() => {
-    // Verify WebGL capability in user's browser. If missing, disable Spline and keep static columns.
+    // Passive scroll listener to freeze WebGL when out of view
+    const handleScroll = () => {
+      setScrollY(window.scrollY);
+    };
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
+
+  React.useEffect(() => {
+    // Verify WebGL capability in user's browser. If mobile or low-end browser, disable Spline and keep static columns.
     try {
+      if (typeof window !== "undefined") {
+        const isMobileOrTablet = window.innerWidth < 1024;
+        if (isMobileOrTablet) {
+          setIsWebGLSupported(false);
+          setUseThreeColumnFallback(true);
+          return;
+        }
+      }
+
       const canvas = document.createElement("canvas");
       const support = !!(
         window.WebGLRenderingContext &&
@@ -470,7 +489,7 @@ export default function HomePage({ initialEvents = [], initialProjects = [] }: {
             {isWebGLSupported && (
               <div className={useThreeColumnFallback 
                 ? "hidden opacity-0 pointer-events-none w-0 h-0 overflow-hidden absolute" 
-                : "lg:col-span-5 h-[320px] md:h-[400px] lg:h-[500px] w-full relative rounded-2xl overflow-hidden bg-card/10 border border-border/40 backdrop-blur-sm opacity-100 transition-all duration-700 animate-in fade-in zoom-in-95"
+                : `lg:col-span-5 h-[320px] md:h-[400px] lg:h-[500px] w-full relative rounded-2xl overflow-hidden bg-card/10 border border-border/40 backdrop-blur-sm opacity-100 transition-all duration-700 animate-in fade-in zoom-in-95 ${scrollY >= 800 ? "hidden opacity-0 pointer-events-none" : ""}`
               }>
                 <SplineModel 
                   scene="https://prod.spline.design/97MRBci3ZutLdKaH/scene.splinecode" 
