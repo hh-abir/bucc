@@ -242,10 +242,10 @@ export default function Dashboard() {
               <div className="flex items-center gap-3">
                 {canPost && (
                   <Dialog open={isPostOpen} onOpenChange={setIsPostOpen}>
-                    <DialogTrigger asChild>
-                      <Button variant="outline" size="sm" className="text-xs font-serif flex items-center gap-1.5 border-border hover:border-primary/20 bg-card">
+                    <DialogTrigger>
+                      <span className="inline-flex items-center justify-center rounded-md text-xs font-serif border border-border bg-card hover:bg-muted h-9 px-3 gap-1.5 cursor-pointer select-none text-foreground transition-colors">
                         <Plus className="w-3.5 h-3.5" /> Post
-                      </Button>
+                      </span>
                     </DialogTrigger>
                     <DialogContent className="sm:max-w-md border-border bg-background text-left">
                       <DialogHeader>
