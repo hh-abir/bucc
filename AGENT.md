@@ -121,9 +121,13 @@ C:\Users\Abir\Desktop\bucc\
 ### Public Events Hub
 - **Categorization:** Automatically splits events into **Upcoming** (High visibility, Color) and **Past Archive** (Grid-based, Grayscale) based on live clock data.
 - **Sorting:** Upcoming (Soonest first), Past (Most recent first).
+- **Asset Uploads:** Event forms support direct file uploads (via Cloudinary) alongside URL embedding. Whitelists ImgBB and Imgur domains for secure remote rendering.
+- **Organizer Workflow:** Supports custom attendance tracking requirements (`needAttendance`) and internal coordinator guidelines (`notes`) displayed directly on admin cards.
 
 ### Profile & Settings
 - **Strict Data Gating:** Official records (Name, ID, Dept, Join Dates) are **Read-Only** for members to maintain data integrity.
+- **Input Refetch Fix:** Verifies state presence (`if (user && !formData)`) before populating inputs to block background session refreshes from overwriting unsaved inputs.
+- **Structured Fields:** Converts the free-text Gender input to a structured select dropdown (Male, Female, Other).
 - **Photo Workflow:** "Select -> Preview -> Confirm & Save" sequence integrated with Cloudinary via internal upload APIs.
 
 ### Public Pages & Presentation
@@ -135,8 +139,9 @@ C:\Users\Abir\Desktop\bucc\
 
 ### Internal Operations & Management
 - **Inquiry Management (`/dashboard/inquiries`):** Secure dashboard for GB, HR, and R&D to read, archive, and delete messages submitted via the public contact form.
-- **Project Moderation (`/dashboard/projects`):** Dual-path system. Members can submit projects (`pending`). Admins (GB, HR, R&D) can review, edit, approve, or directly add new projects to the public gallery. Includes live-preview capability for external image URLs.
+- **Project Moderation (`/dashboard/projects`):** Dual-path system. Members can submit projects (`pending`). Admins (GB, HR, R&D) can review, edit, approve, or directly add new projects to the public gallery. Includes live-preview capability for external image URLs. Enables R&D leaders (`isSuper`) to delete projects from the requests registry, and provides a direct "Delete Project" button on the Edit page for authors/admins.
 - **Visual Identity Config (`/dashboard/broadcast/hero-config`):** GB and R&D can manage the homepage Hero Carousel slides via a drag-and-drop interface, updating the public site in real-time.
+- **System Metrics & Charts:** Member Demographics are displayed as a horizontal bar breakdown (replacing the buggy SVG donut chart). Excludes Governing Body members from active metrics, groups non-Governing-Body Alumni together under a unified `"Alumni"` segment, and lists specific sub-statistics.
 
 ---
 

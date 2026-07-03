@@ -8,7 +8,10 @@ export async function POST(request: NextRequest) {
     
     // Capture IP
     const forwarded = request.headers.get("x-forwarded-for");
-    const ip = forwarded ? forwarded.split(",")[0] : (request.ip || "127.0.0.1");
+    const realIp = request.headers.get("x-real-ip");
+    const ip = forwarded 
+      ? forwarded.split(",")[0] 
+      : (realIp || (request as any).ip || "127.0.0.1");
 
     // Format local date: YYYY-MM-DD
     const today = new Date().toISOString().split("T")[0];
