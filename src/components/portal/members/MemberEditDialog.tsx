@@ -263,7 +263,6 @@ export default function MemberEditDialog({
                     <SelectContent>
                       <SelectItem value="Active">Active</SelectItem>
                       <SelectItem value="Inactive">Inactive</SelectItem>
-                      <SelectItem value="Probation">Probation</SelectItem>
                       <SelectItem value="Alumni">Alumni</SelectItem>
                     </SelectContent>
                   </Select>

@@ -1,6 +1,4 @@
 const designations = [
-  { title: "Advisor" },
-  { title: "Alumni" },
   { title: "President", type: "GB Member" },
   { title: "Vice President", type: "GB Member" },
   { title: "General Secretary", type: "GB Member" },

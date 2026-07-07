@@ -53,8 +53,13 @@ export async function GET(request: Request) {
     const isAdmin = user && canManageProjects(user);
 
     const query: any = {};
+    const author = searchParams.get("author");
+    const isSelfQuery = user && author === user.id;
+ 
     if (isAdmin && status !== "approved") {
       query.status = status;
+    } else if (isSelfQuery) {
+      // Allow author to fetch all of their own projects regardless of status
     } else {
       query.status = "approved";
     }
@@ -64,7 +69,6 @@ export async function GET(request: Request) {
       query.isFeatured = true;
     }
 
-    const author = searchParams.get("author");
     if (author) {
       query.$or = [
         { author: author },
@@ -163,11 +167,6 @@ export async function PATCH(request: Request) {
       return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
 
-    // Members can only edit if still pending
-    if (!isAdmin && project.status !== "pending") {
-      return NextResponse.json({ error: "Cannot edit project once it is processed" }, { status: 403 });
-    }
-
     // Only admins can change status
     if (status && !isAdmin) {
       return NextResponse.json({ error: "Only admins can change project status" }, { status: 403 });
@@ -183,6 +182,11 @@ export async function PATCH(request: Request) {
     if (isFeatured !== undefined) updateData.isFeatured = isFeatured;
     if (isAdmin && isAuthor === false) {
       updateData.lastEditedBy = user.id;
+    }
+
+    // If a non-admin edits their project, we reset status to "pending" for moderation review
+    if (!isAdmin && project.status === "approved") {
+      updateData.status = "pending";
     }
 
     const updatedProject = await Project.findByIdAndUpdate(id, updateData, { new: true });

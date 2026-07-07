@@ -44,24 +44,14 @@ export async function GET(request: NextRequest) {
     const isAlumni = user?.memberStatus === "Alumni";
     const isSuper = isSuperUser(user);
     const isPRModerator = !isAlumni && user.buccDepartment === "Press Release and Publications" && ["Director", "Assistant Director"].includes(user.designation);
-    const isPRSE = !isAlumni && user.buccDepartment === "Press Release and Publications" && user.designation === "Senior Executive";
-
+ 
     if (isSuper || isPRModerator) {
-      // Superadmins and PR Directors can see everything
+      // Superadmins and PR Directors can see everything (all authors, all statuses)
       const releases = await PressRelease.find({}).sort({ createdDate: -1 });
       return NextResponse.json(releases);
-    } else if (isPRSE) {
-      // PR SE can see published ones OR their own drafts/pending
-      const releases = await PressRelease.find({
-        $or: [
-          { status: "published" },
-          { "author.authorId": user.id }
-        ]
-      }).sort({ createdDate: -1 });
-      return NextResponse.json(releases);
     } else {
-      // Other club members: only published
-      const releases = await PressRelease.find({ status: "published" }).sort({ createdDate: -1 });
+      // Non-moderators (like PR Senior Executives) can only see press releases they wrote themselves
+      const releases = await PressRelease.find({ "author.authorId": user.id }).sort({ createdDate: -1 });
       return NextResponse.json(releases);
     }
   } catch (error: any) {

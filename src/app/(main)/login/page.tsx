@@ -68,13 +68,20 @@ export default function Login() {
             />
           </div>
 
-          <div className="flex items-center justify-between pt-2">
-            <a href="/reset-password" className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">
-              Forgot password?
-            </a>
-            <a href="/registration" className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">
-              Register here
-            </a>
+          <div className="flex flex-col gap-3 pt-2 text-sm">
+            <div className="flex justify-between items-center">
+              <a href="/reset-password" className="font-medium text-muted-foreground hover:text-foreground transition-colors">
+                Forgot password?
+              </a>
+              <a href="/registration" className="font-medium text-muted-foreground hover:text-foreground transition-colors">
+                Recruitment Intake
+              </a>
+            </div>
+            <div className="border-t border-border/50 pt-3 text-center">
+              <a href="/member-registration" className="font-semibold text-primary hover:underline transition-all">
+                Existing BUCC Member / Alumni Registration
+              </a>
+            </div>
           </div>
           
           <div className="pt-4">

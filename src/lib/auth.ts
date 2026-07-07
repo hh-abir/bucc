@@ -4,8 +4,19 @@ import { mongodbAdapter } from "better-auth/adapters/mongodb";
 import { MongoClient } from "mongodb";
 import { twoFactor } from "better-auth/plugins";
 
-const client = new MongoClient(process.env.MONGODB_URI as string);
-const db = client.db(process.env.MONGODB_DB as string);
+let client: MongoClient;
+let db: any;
+
+if (process.env.NODE_ENV === "production") {
+  client = new MongoClient(process.env.MONGODB_URI as string);
+  db = client.db(process.env.MONGODB_DB as string);
+} else {
+  if (!(global as any)._mongoClientForBetterAuth) {
+    (global as any)._mongoClientForBetterAuth = new MongoClient(process.env.MONGODB_URI as string);
+  }
+  client = (global as any)._mongoClientForBetterAuth;
+  db = client.db(process.env.MONGODB_DB as string);
+}
 
 export const auth = betterAuth({
   appName: "BUCC",

@@ -83,7 +83,7 @@ export default function HeroConfigPage() {
   const userDesignation = user?.designation?.toLowerCase() || "";
 
   const isGB = ["president", "vice president", "vice-president", "general secretary", "treasurer"].includes(userDesignation);
-  const isRDHead = userDept === "research and development" && ["director", "assistant director", "senior executive", "executive"].includes(userDesignation);
+  const isRDHead = userDept === "research and development" && ["director", "assistant director"].includes(userDesignation);
 
   if (!isGB && !isRDHead) {
     return (

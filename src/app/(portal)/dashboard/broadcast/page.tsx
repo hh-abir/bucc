@@ -237,7 +237,7 @@ export default function BroadcastPage() {
   const isGB = ["president", "vice president", "vice-president", "general secretary", "treasurer"].includes(userDesignation);
   const isHRHead = userDept === "human resources" && ["director", "assistant director"].includes(userDesignation);
   const isRDHead = userDept === "research and development" && ["director", "assistant director"].includes(userDesignation);
-  const isEB = ["director", "assistant director", "senior executive", "executive"].includes(userDesignation);
+  const isEB = ["director", "assistant director"].includes(userDesignation);
 
   if (!isGB && !isEB) {
     return (

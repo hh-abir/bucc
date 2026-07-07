@@ -100,3 +100,68 @@ This document outlines all features, security refactoring, database schemas, and
     *   Excluded Governing Body members from active demographics metrics.
     *   Grouped non-Governing-Body Alumni together under a unified `"Alumni"` segment in the chart and added an Alumni sub-statistic indicator.
     *   Fixed a TypeScript compilation error in `src/app/api/analytics/track/route.ts` where `NextRequest` lacked definition for the `request.ip` parameter.
+ 
+---
+ 
+## 7. Collapsible Sidebar, Preloader Screen, and Public Settings UI Re-architecture (July 3 - 6, 2026)
+*   **Collapsible Sidebar Layout ([Sidebar.tsx](file:///C:/Users/Abir/Desktop/bucc-clean-history/src/components/Sidebar.tsx) and [layout.tsx](file:///C:/Users/Abir/Desktop/bucc-clean-history/src/app/%28portal%29/layout.tsx)):**
+    *   Added a desktop-collapse toggle (`ChevronLeft` / `ChevronRight`) in the sidebar header next to the branding text.
+    *   Adjusts width from `w-64` (expanded) to `w-16` (collapsed) smoothly.
+    *   Hides navigation labels, centers icons, and auto-expands on sub-menu clicks, rendering tooltips for hovered items in the collapsed state.
+*   **Desktop Header Alignment ([layout.tsx](file:///C:/Users/Abir/Desktop/bucc-clean-history/src/app/%28portal%29/layout.tsx)):**
+    *   Added `ml-auto` to the user profile and theme container in the header, aligning user details to the right on desktop layouts.
+*   **Public Settings Tabbed UI ([PublicProfileSettings.tsx](file:///C:/Users/Abir/Desktop/bucc-clean-history/src/components/portal/settings/PublicProfileSettings.tsx)):**
+    *   Redesigned the single stacked settings form into a tabbed layout containing:
+        1. **Basic Info**: URL slugs, Cover Photo uploads, resume links, job designations, and biographies.
+        2. **Rich Content (Markdown)**: Scrollable textareas for experience, activity, education, achievements, and certifications.
+        3. **Visibility Controls**: Grid of interactive privacy checkboxes and a master switch to toggle profile activation.
+    *   Resolved typing errors with `DialogTrigger` and verified compiler compatibility.
+*   **Destructive Data Wipe Trim Guard ([manage-data/page.tsx](file:///C:/Users/Abir/Desktop/bucc-clean-history/src/app/%28portal%29/dashboard/manage-data/page.tsx)):**
+    *   Modified matching logic in `handleFlush` to match strings case-insensitively and trim spacing (e.g. matching `"recruitment_all"` with trailing spaces or different case), eliminating collection wipe mismatches.
+*   **Cleaned Press Release Grayscale Filter ([page.tsx](file:///C:/Users/Abir/Desktop/bucc-clean-history/src/app/%28main%29/publications/press-releases/page.tsx)):**
+    *   Removed the default `grayscale` CSS filter from the public press release cover photos, allowing images to render in full color by default on page load.
+*   **Cinematic Preloader & Session Cache ([Preloader.tsx](file:///C:/Users/Abir/Desktop/bucc-clean-history/src/components/public/Preloader.tsx)):**
+    *   Developed a global preloader playing a logo animation, typewriter effect of the club motto `"UPGRADE YOURSELF."` across two bold, italic lines, and a smooth `001%` to `100%` digital loading bar.
+    *   Integrated `sessionStorage` caching. The preloader runs only once per browser tab session, mounting/unmounting instantly on subsequent page refreshes to keep the website feeling fast.
+*   **WebGL Spline Revert:**
+    *   Reverted all homepage optimizations related to the WebGL Spline 3D canvas, restoring it to its exact original loading state per user preference.
+ 
+---
+ 
+## 8. Existing Member Registration & Multi-level Approvals (July 8, 2026)
+*   **Staged Request Database Schema ([PendingMember.ts](file:///C:/Users/Abir/Desktop/bucc-clean-history/src/model/PendingMember.ts)):**
+    *   Created a staging schema to hold pending registrations before account activation.
+    *   Integrates dynamic fields: Name, Student ID, Email, Phone, BUCC Department, BRACU Department, Designation, and Membership Status (Active/Alumni).
+*   **Password Symmetric Encryption Safeguards ([crypto.ts](file:///C:/Users/Abir/Desktop/bucc-clean-history/src/lib/crypto.ts)):**
+    *   Implemented Node `crypto`-based AES-256-CBC symmetric encryption to store passwords securely inside the staging collection.
+    *   Decrypts the credentials only when the registration request is approved to construct the account via Better Auth.
+*   **Public Signup Panel ([page.tsx](file:///C:/Users/Abir/Desktop/bucc-clean-history/src/app/%28main%29/member-registration/page.tsx)):**
+    *   Designed `/member-registration` as a premium centered dashboard-card layout (fully distinct from the recruitment intake split-page). Features ambient background blur neon lights, card-grouped form categories, client-side validation, duplicate checks, and streamlined form inputs:
+        *   **Alumni Status**: BUCC Department dropdown includes "Governing Body" as an option. Selecting "Governing Body" updates designations to President, VP, GS, or Treasurer; selecting other departments updates designations to Director, AD, SE, Executive, or General Member. Includes an optional checkbox to bypass G-Suite constraints and register using a personal email address (e.g. Gmail).
+        *   **Current Member**: Excludes "Governing Body" from departments, limits designations strictly to Senior Executive, Executive, and General Member, and strictly enforces G-Suite verification.
+*   **Administrative Approvals Tab ([page.tsx](file:///C:/Users/Abir/Desktop/bucc-clean-history/src/app/%28portal%29/dashboard/members/page.tsx)):**
+    *   Added a tab system with a live notification counter badge inside the Members Directory page for eligible reviewers.
+    *   Reviewers can only see and action requests matching their authority levels.
+*   **Review & Approval Modal ([MemberApprovalDialog.tsx](file:///C:/Users/Abir/Desktop/bucc-clean-history/src/components/portal/members/MemberApprovalDialog.tsx)):**
+    *   Provides inline profile editing (Name, Student ID, Designation, etc.) before approving.
+    *   Triggers programmatically to register users through Better Auth, automatically dispatches a congratulations/welcome email listing login credentials, and deletes the staging document.
+ 
+*   **API Handlers ([route.ts](file:///C:/Users/Abir/Desktop/bucc-clean-history/src/app/api/member-registration/route.ts) & [[id]/route.ts](file:///C:/Users/Abir/Desktop/bucc-clean-history/src/app/api/member-registration/%5Bid%5D/route.ts)):**
+    *   Exposes secure routes managing submission (POST), retrieval (GET), editing/activation (PATCH), and rejection/deletion (DELETE).
+*   **Sign-in Portal Integration ([page.tsx](file:///C:/Users/Abir/Desktop/bucc-clean-history/src/app/%28main%29/login/page.tsx)):**
+    *   Added a prominent "Existing BUCC Member / Alumni Registration" navigation link under the login form to redirect members to the portal signup layout.
+*   **Broadcast Center Permission Restructuring:**
+    *   Restricted Broadcast Center and Hero configuration access. Replaced permissive checks permitting Senior Executives and Executives with strict Executive Body verification (`isGB || ["director", "assistant director"].includes(userDesignation)`), blocking general body members from modifying global alerts, announcements, recruitment configurations, or hero slides.
+*   **Members Directory Permission Restructuring:**
+    *   Restricted Members Directory access ([page.tsx](file:///C:/Users/Abir/Desktop/bucc-clean-history/src/app/%28portal%29/dashboard/members/page.tsx)) and sidebar navigation link visibility ([Sidebar.tsx](file:///C:/Users/Abir/Desktop/bucc-clean-history/src/components/Sidebar.tsx)) to Governing Body (GB) and Executive Body (Directors / Assistant Directors) members. Senior Executives are now excluded from viewing the active member roster.
+*   **MongoClient Connection Caching Pattern ([auth.ts](file:///C:/Users/Abir/Desktop/bucc-clean-history/src/lib/auth.ts)):**
+    *   Cached the `MongoClient` connection globally in development mode. Prevents Next.js hot-reloads from repeatedly instantiating separate connection pools, solving the `MongoTopologyClosedError` for authentication and session endpoints.
+*   **Blogs and Press Releases Dashboard & API Scoping ([blogs/page.tsx](file:///C:/Users/Abir/Desktop/bucc-clean-history/src/app/%28portal%29/dashboard/blogs/page.tsx), [press-releases/page.tsx](file:///C:/Users/Abir/Desktop/bucc-clean-history/src/app/%28portal%29/dashboard/press-releases/page.tsx), [api/press-releases/route.ts](file:///C:/Users/Abir/Desktop/bucc-clean-history/src/app/api/press-releases/route.ts)):**
+    *   Restricted the backend query for non-moderators (such as Senior Executives) to only return press releases they authored themselves (matching the blog API scoping).
+    *   Kept the status filter tabs ("All", "Published", "Pending Approval", "Drafts") visible for all users. These tabs now filter the user's own submissions for regular writers, and moderate all submissions for Governing Body (GB) and Executive Body (EB) moderators.
+*   **Profile Slug Uniqueness Index Fix ([route.ts](file:///C:/Users/Abir/Desktop/bucc-clean-history/src/app/api/member/route.ts)):**
+    *   Replaced setting `profileSlug` to `null` with MongoDB's `$unset` operator when members clear their custom profile URLs. This fully deletes the field from the document, allowing MongoDB's `sparse: true` index to ignore it and preventing `E11000 duplicate key` validation errors on profile updates.
+*   **Designations List Cleanup ([designations.ts](file:///C:/Users/Abir/Desktop/bucc-clean-history/src/constants/designations.ts)):**
+    *   Removed the `"Advisor"` and `"Alumni"` designations from the global designations constant registry. This completely excludes advisors (faculty members) and alumni status definitions from student member designations dropdowns (such as edit and approval dialogs), while keeping Alumni as a core membership status dropdown choice.
+*   **Probation Membership Status Removal ([MemberEditDialog.tsx](file:///C:/Users/Abir/Desktop/bucc-clean-history/src/components/portal/members/MemberEditDialog.tsx)):**
+    *   Removed the `"Probation"` selection option from the member status dropdown inside the profile editor, limiting status categories strictly to Active, Inactive, and Alumni.

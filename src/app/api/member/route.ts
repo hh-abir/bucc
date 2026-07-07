@@ -97,11 +97,13 @@ export async function PATCH(request: NextRequest) {
     }
 
     // Profile Slug Validation
+    let unsetOps: any = {};
     if (updateData.profileSlug !== undefined) {
       const slug = typeof updateData.profileSlug === "string" ? updateData.profileSlug.trim() : "";
       
       if (slug === "") {
-        updateData.profileSlug = null;
+        delete updateData.profileSlug;
+        unsetOps.profileSlug = "";
       } else {
         const slugRegex = /^[a-zA-Z0-9-]+$/;
         if (!slugRegex.test(slug)) {
@@ -136,9 +138,14 @@ export async function PATCH(request: NextRequest) {
     }
 
     // Perform the update
+    const updateOps: any = { $set: updateData };
+    if (Object.keys(unsetOps).length > 0) {
+      updateOps.$unset = unsetOps;
+    }
+
     const result = await usersCollection.findOneAndUpdate(
       { _id: new ObjectId(memberID) },
-      { $set: updateData },
+      updateOps,
       { returnDocument: 'after' }
     );
 

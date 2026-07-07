@@ -61,11 +61,16 @@ export function Sidebar({
   }, [pathname, isCollapsed]);
  
   const isAlumni = user?.memberStatus === "Alumni";
+  const userDesignation = user?.designation?.toLowerCase() || "";
+  const canViewMembers = user && !isAlumni && [
+    "president", "vice president", "vice-president", "general secretary", "treasurer",
+    "director", "assistant director"
+  ].includes(userDesignation);
  
   const links = [
     { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
     ...(!isAlumni ? [
-      { href: "/dashboard/members", label: "Members", icon: Users },
+      ...(canViewMembers ? [{ href: "/dashboard/members", label: "Members", icon: Users }] : []),
       { href: "/dashboard/events", label: "Events", icon: Calendar },
     ] : []),
     { href: "/dashboard/blogs", label: "Blogs", icon: FileText },
@@ -76,8 +81,6 @@ export function Sidebar({
     { href: "/dashboard/evaluation", label: "Evaluation", icon: GraduationCap },
     { href: "/dashboard/registration", label: "Account Creation", icon: UserPlus },
   ];
- 
-  const userDesignation = user?.designation?.toLowerCase() || "";
   const userDept = user?.buccDepartment?.toLowerCase() || "";
  
   const isGB = ["president", "vice president", "vice-president", "general secretary", "treasurer"].includes(userDesignation) && !isAlumni;
@@ -90,7 +93,7 @@ export function Sidebar({
     "director", "assistant director", "senior executive"
   ].includes(userDesignation);
  
-  const canBroadcast = (isGB || ["director", "assistant director", "senior executive", "executive"].includes(userDesignation)) && !isAlumni;
+  const canBroadcast = (isGB || ["director", "assistant director"].includes(userDesignation)) && !isAlumni;
  
   const canSeeRecruitment = user && 
     ["human resources", "governing body", "research and development"].includes(userDept) &&

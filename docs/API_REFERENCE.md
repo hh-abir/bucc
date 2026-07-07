@@ -237,4 +237,34 @@ Uploads a local image file to Cloudinary.
     - User Public Profile Cover Photo uploads
     - Dashboard Banner / Hero Carousel uploads
   - All other image fields (such as Event featured images, Blog cover images, Project cover images, and Press Release cover images) and rich-text inline editor images must be embedded via URL instead of being directly uploaded.
+ 
+---
+ 
+## Analytics Tracking (`/api/analytics/track`)
+ 
+Processes page views and unique traffic counts dynamically on landing page hits.
+ 
+### `POST /api/analytics/track`
+Logs a visit for traffic statistics.
+- **Payload:** `{ path: string }`
+- **Security:** Casts IP request fields safely. Automatically extracts connection IPs via headers fallback (`x-real-ip`, `x-forwarded-for`) and dynamically increments page views and unique daily IPs.
+ 
+---
+ 
+## Data Management & Metrics (`/api/manage-data`)
+ 
+Administrative tools to fetch club demographics, site traffic logs, and perform data flushes.
+ 
+### `GET /api/manage-data`
+Retrieves aggregated statistics and chart logs for traffic and demographics.
+- **Auth:** Restricted to Governing Body (GB) and R&D Leadership.
+- **Returns:**
+  - `metrics`: Count card statistics.
+  - `demographics`: Dynamic horizontal breakdown calculations. Excludes GB members, and aggregates Alumni under a unified segment.
+  - `traffic`: Sorted page views and unique visitor plots mapped by day, month, or year.
+ 
+### `DELETE /api/manage-data`
+Performs a destructive wipe of recruitment registration and evaluation collections.
+- **Payload:** `{ collectionName: string }` (Must match `"recruitment_all"`)
+- **Security:** Restricted to Governing Body (GB) and R&D Leadership. Enforces a case-insensitive, whitespace-trimmed verification check to prevent accidental flushes while remaining user-friendly.
 
