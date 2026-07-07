@@ -1,10 +1,8 @@
 import { auth } from "@/auth";
 import { NextRequest, NextResponse } from "next/server";
 import { isSuperUser } from "@/lib/permissions";
-import { MongoClient, ObjectId } from "mongodb";
-
-const client = new MongoClient(process.env.MONGODB_URI as string);
-const db = client.db(process.env.MONGODB_DB as string);
+import { ObjectId } from "mongodb";
+import { db } from "@/lib/auth";
 
 const permittedDepartments = ["Human Resources", "Governing Body"];
 const permittedDesignations = ["Director", "Assistant Director", "President", "Vice President", "General Secretary", "Treasurer"];

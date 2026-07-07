@@ -153,6 +153,10 @@ C:\Users\Abir\Desktop\bucc\
 - **Member Registration Approvals:** Adds a 'Pending Registrations' tab inside the Members Directory. Displays requests with live notification bubbles to eligible reviewers (Active Directors/ADs for departmental members; Governing Body/R&D for alumni; superAdmin for anyone). Reviews open a sheet drawer allowing editing of all details before approving (which registers the user in Better Auth and drops the pending record) or rejecting.
 - **Designations List Cleanup:** Removed `"Advisor"` and `"Alumni"` designations from the global designations constant registry (`designations.ts`), excluding advisors (faculty members) and alumni status definitions from student member designations dropdowns (such as edit and approval dialogs), while keeping Alumni as a core membership status dropdown choice.
 - **Probation Membership Status Removal:** Removed the `"Probation"` choice from the member status dropdown inside the profile edit modal (`MemberEditDialog.tsx`), limiting official status configurations to Active, Inactive, and Alumni.
+- **Dynamic Recruitment Gating for Senior Executives:** Integrated dynamic checks on `allowSERecruitmentAccess` configuration within the sidebar component (`Sidebar.tsx`), page-level guards (`withAuthorization.tsx` and `registration/page.tsx`), and the backend evaluation/pre-registration/onboarding APIs (`api/evaluation/all`, `api/preregmembers`, and `api/registration`). When toggled on by the Governing Body, Senior Executives from any department (including Communication and Marketing) will dynamically see the recruitment option menu in their portal sidebar and have full authorization to view, evaluate, and onboard member accounts under their respective departments.
+- **MongoClient Connection Pooling sharing:** Consolidated all native driver MongoDB queries to utilize the globally cached client and database instances exported from `src/lib/auth.ts`. Avoided redundant module-level `new MongoClient` instances across REST API routes, solving database connection spikes and ensuring zero leakage during local development (HMR) rebuilds.
+- **Announcement Gating Restructuring:** Gated backend and frontend announcement posting privilege strictly to active Governing Body (GB) and Executive Body (EB) members, ensuring other staff roles (such as Senior Executives and Executives) or inactive members cannot post or delete announcements.
+- **TypeScript Strict Mode Mappings:** Explicitly typed arrow callback arguments in MongoDB native `.map()` statements to satisfy strict type verification checks during compilation.
 
 ---
 
@@ -177,3 +181,4 @@ C:\Users\Abir\Desktop\bucc\
 2. **SEO Audit:** Complete for v2 public launch.
 3. **Legacy Clean-up:** Final removal of any remaining `MemberInfo` references in legacy helpers.
 4. **Member Approvals:** Refine the GB approval dashboard for new registrations.
+5. **System Context:** Maintain the comprehensive context guide in [docs/all_context.md](file:///C:/Users/Abir/Desktop/bucc-clean-history/docs/all_context.md).

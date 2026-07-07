@@ -3,6 +3,7 @@
 import Link from "next/link";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
+import { useQuery } from "@tanstack/react-query";
 import { 
   LayoutDashboard, 
   Settings, 
@@ -50,6 +51,18 @@ export function Sidebar({
   const [isRecruitmentOpen, setIsRecruitmentOpen] = useState(false);
   const [isProjectsOpen, setIsProjectsOpen] = useState(false);
  
+  // Fetch recruitment configuration dynamically
+  const { data: configData } = useQuery({
+    queryKey: ["recruitment-config"],
+    queryFn: async () => {
+      const res = await fetch("/api/config?key=recruitment_config");
+      if (!res.ok) return { allowSERecruitmentAccess: false };
+      const json = await res.json();
+      return json?.value || { allowSERecruitmentAccess: false };
+    },
+    staleTime: 60 * 1000,
+  });
+ 
   // Auto-expand if on a related path
   useEffect(() => {
     if (pathname.includes("/dashboard/recruitment") && !isCollapsed) {
@@ -95,9 +108,13 @@ export function Sidebar({
  
   const canBroadcast = (isGB || ["director", "assistant director"].includes(userDesignation)) && !isAlumni;
  
-  const canSeeRecruitment = user && 
-    ["human resources", "governing body", "research and development"].includes(userDept) &&
-    ["president", "vice president", "vice-president", "general secretary", "treasurer", "director", "assistant director"].includes(userDesignation) && !isAlumni;
+  const canSeeRecruitment = user && (
+    (
+      ["human resources", "governing body", "research and development"].includes(userDept) &&
+      ["president", "vice president", "vice-president", "general secretary", "treasurer", "director", "assistant director"].includes(userDesignation)
+    ) ||
+    (configData?.allowSERecruitmentAccess && userDesignation === "senior executive")
+  ) && !isAlumni;
  
   const canManageData = isGB || isHRHead || isRDAdmin;
   const canManageInquiries = isGB || isHRHead || isRDAdmin;

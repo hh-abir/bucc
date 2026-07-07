@@ -14,25 +14,34 @@ const permittedDesignations = [
   "Assistant Director",
 ];
 
-async function getActiveDesignations() {
+async function checkPermitted() {
   const config = await getConfigValue("recruitment_config", { allowSERecruitmentAccess: false });
-  const active = [...permittedDesignations];
+  const activeDesignations = [...permittedDesignations];
   if (config?.allowSERecruitmentAccess) {
-    active.push("Senior Executive");
+    activeDesignations.push("Senior Executive");
   }
-  return active;
+  const { session, isPermitted: defaultPermitted } = await hasAuth(
+    activeDesignations,
+    permittedDepartments,
+  );
+ 
+  let isPermitted = defaultPermitted;
+  if (session && !isPermitted) {
+    const user = session.user as any;
+    if (config?.allowSERecruitmentAccess && user.designation === "Senior Executive" && user.memberStatus !== "Alumni") {
+      isPermitted = true;
+    }
+  }
+ 
+  return { session, isPermitted };
 }
-
+ 
 export async function PATCH(
   request: Request,
   { params }: { params: Promise<{ id: string }> },
 ) {
-  const activeDesignations = await getActiveDesignations();
-  const { session, isPermitted } = await hasAuth(
-    activeDesignations,
-    permittedDepartments,
-  );
-
+  const { session, isPermitted } = await checkPermitted();
+ 
   if (!session || !isPermitted) {
     return NextResponse.json({
       message: "You are not authorized to view this page",
@@ -70,12 +79,8 @@ export async function GET(
   request: Request,
   { params }: { params: Promise<{ id: string }> },
 ) {
-  const activeDesignations = await getActiveDesignations();
-  const { session, isPermitted } = await hasAuth(
-    activeDesignations,
-    permittedDepartments,
-  );
-
+  const { session, isPermitted } = await checkPermitted();
+ 
   if (!session || !isPermitted) {
     return NextResponse.json({
       message: "You are not authorized to view this page",

@@ -155,8 +155,9 @@ export default function Dashboard() {
   if (sessionStatus === "loading" || isLoading) return <SpinnerComponent />;
 
   const user = session?.user as any;
-  const isGB = isGoverningBody(user);
-  const isEB = ["Director", "Assistant Director", "Senior Executive", "Executive"].includes(user.designation);
+  const isActive = user?.memberStatus === "Active";
+  const isGB = isGoverningBody(user) && isActive;
+  const isEB = ["Director", "Assistant Director"].includes(user?.designation) && isActive;
   const canPost = isGB || isEB;
 
   // Filter for truly upcoming events

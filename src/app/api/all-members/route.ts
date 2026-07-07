@@ -3,10 +3,7 @@ import designations from "@/constants/designations";
 import { auth } from "@/auth";
 import { NextResponse } from "next/server";
 import { isSuperUser } from "@/lib/permissions";
-import { MongoClient } from "mongodb";
-
-const client = new MongoClient(process.env.MONGODB_URI as string);
-const db = client.db(process.env.MONGODB_DB as string);
+import { db } from "@/lib/auth";
 
 const departmentsName = departments.map((department) => department.title);
 const designationsName = designations.map((designation) => designation.title);

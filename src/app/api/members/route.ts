@@ -3,11 +3,8 @@ import departments from "@/constants/departments";
 import designations from "@/constants/designations";
 import dbConnect from "@/lib/dbConnect";
 import { NextResponse } from "next/server";
-import { MongoClient } from "mongodb";
+import { db } from "@/lib/auth";
 import { isSuperUser } from "@/lib/permissions";
-
-const client = new MongoClient(process.env.MONGODB_URI as string);
-const db = client.db(process.env.MONGODB_DB as string);
 
 const departmentsName = departments.map((department) => department.title);
 const designationsName = designations.map((designation) => designation.title);
@@ -35,7 +32,7 @@ export async function GET(request: Request) {
       ).toArray();
 
       return NextResponse.json({
-        users: users.map(u => ({
+        users: users.map((u: any) => ({
           id: u._id.toString(),
           name: u.name,
           designation: u.designation,
@@ -65,7 +62,7 @@ export async function GET(request: Request) {
 
   const seView = ["Director", "Assistant Director", "Senior Executive"];
   const ebView = ["Director", "Assistant Director", "Senior Executive", "Executive", "General Member"];
-  const gbView = [...designations.map(d => d.title)];
+  const gbView = [...designations.map((d: any) => d.title)];
 
   const isGB = isSuperUser(user);
   

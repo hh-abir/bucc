@@ -27,18 +27,19 @@ export async function POST(request: NextRequest) {
   try {
     const session = await auth();
     if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-
+ 
     const user = session.user as any;
-    const isGB = isSuperUser(user);
-    const isEB = ["Director", "Assistant Director", "Senior Executive", "Executive"].includes(user.designation);
-
+    const isActive = user.memberStatus === "Active";
+    const isGB = ["President", "Vice President", "General Secretary", "Treasurer"].includes(user.designation) && isActive;
+    const isEB = ["Director", "Assistant Director"].includes(user.designation) && isActive;
+ 
     if (!isGB && !isEB) {
-      return NextResponse.json({ error: "Only GB, R&D leaders, and EB members can post announcements" }, { status: 403 });
+      return NextResponse.json({ error: "Only Active GB and EB members can post announcements" }, { status: 403 });
     }
-
+ 
     const body = await request.json();
     await dbConnect();
-
+ 
     const newAnnouncement = new Announcement({
       ...body,
       author: {
@@ -47,27 +48,28 @@ export async function POST(request: NextRequest) {
         designation: user.designation,
       }
     });
-
+ 
     await newAnnouncement.save();
     return NextResponse.json(newAnnouncement, { status: 201 });
   } catch (error: any) {
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
 }
-
+ 
 export async function DELETE(request: NextRequest) {
   try {
     const session = await auth();
     if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-
+ 
     const { searchParams } = new URL(request.url);
     const id = searchParams.get("id");
     if (!id) return NextResponse.json({ error: "ID required" }, { status: 400 });
-
+ 
     const user = session.user as any;
-    const isGB = isSuperUser(user);
-
-    if (!isGB) return NextResponse.json({ error: "Only GB and R&D leaders can delete announcements" }, { status: 403 });
+    const isActive = user.memberStatus === "Active";
+    const isGB = ["President", "Vice President", "General Secretary", "Treasurer"].includes(user.designation) && isActive;
+ 
+    if (!isGB) return NextResponse.json({ error: "Only Active GB can delete announcements" }, { status: 403 });
 
     await dbConnect();
     await Announcement.findByIdAndDelete(id);

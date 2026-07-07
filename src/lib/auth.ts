@@ -4,8 +4,8 @@ import { mongodbAdapter } from "better-auth/adapters/mongodb";
 import { MongoClient } from "mongodb";
 import { twoFactor } from "better-auth/plugins";
 
-let client: MongoClient;
-let db: any;
+export let client: MongoClient;
+export let db: any;
 
 if (process.env.NODE_ENV === "production") {
   client = new MongoClient(process.env.MONGODB_URI as string);

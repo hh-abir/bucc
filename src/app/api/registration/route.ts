@@ -4,11 +4,8 @@ import EvaluationData from "@/model/EvaluationData";
 import { NextRequest, NextResponse } from "next/server";
 import generatePassword from "@/helpers/generatePassword";
 import { singleWelcomeMail } from "@/helpers/mailer";
-import { MongoClient } from "mongodb";
 import { isGoverningBody as checkGB } from "@/lib/permissions";
-
-const client = new MongoClient(process.env.MONGODB_URI as string);
-const db = client.db(process.env.MONGODB_DB as string);
+import { db } from "@/lib/auth";
 
 export async function GET(request: NextRequest) {
   try {
@@ -29,12 +26,16 @@ export async function GET(request: NextRequest) {
     // Fetch all accepted applicants
     const query: any = { status: "Accepted" };
     
+    const config = await db.collection("appconfigs").findOne({ key: "recruitment_config" });
+    const configVal = config?.value || { allowSERecruitmentAccess: false };
+    const isSEAllowed = configVal.allowSERecruitmentAccess && user.designation === "Senior Executive";
+ 
     // STRICT VISIBILITY:
     // If GB: See everyone.
-    // If Dept Head: ONLY see their own department.
+    // If Dept Head or permitted Senior Executive: ONLY see their own department.
     // Others: Forbidden.
     if (!isGB) {
-      if (isDeptHead) {
+      if (isDeptHead || isSEAllowed) {
         query.buccDepartment = user.buccDepartment;
       } else {
         return NextResponse.json({ error: "Forbidden" }, { status: 403 });
@@ -46,7 +47,7 @@ export async function GET(request: NextRequest) {
     // Filter out those who already have a user account in Better Auth
     const usersCollection = db.collection("user");
     const onboardedEmails = await usersCollection.find({}, { projection: { email: 1 } }).toArray();
-    const onboardedEmailSet = new Set(onboardedEmails.map(u => u.email.toLowerCase()));
+    const onboardedEmailSet = new Set(onboardedEmails.map((u: any) => u.email.toLowerCase()));
 
     const pendingOnboarding = acceptedApplicants.filter(app => !onboardedEmailSet.has(app.email.toLowerCase()));
 
@@ -91,7 +92,14 @@ export async function POST(request: NextRequest) {
     const isGB = checkGB(currentUser);
     const isDeptHead = ["Director", "Assistant Director"].includes(currentUser.designation);
     
-    if (!isGB && (!isDeptHead || currentUser.buccDepartment !== applicant.buccDepartment)) {
+    const config = await db.collection("appconfigs").findOne({ key: "recruitment_config" });
+    const configVal = config?.value || { allowSERecruitmentAccess: false };
+    const isSEAllowed = configVal.allowSERecruitmentAccess && currentUser.designation === "Senior Executive";
+ 
+    const hasRight = isGB || 
+      ((isDeptHead || isSEAllowed) && currentUser.buccDepartment === applicant.buccDepartment);
+ 
+    if (!hasRight) {
       return NextResponse.json({ error: "You are not authorized to onboard this member" }, { status: 403 });
     }
 

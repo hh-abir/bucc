@@ -234,10 +234,11 @@ export default function BroadcastPage() {
   const userDept = user?.buccDepartment?.toLowerCase() || "";
   const userDesignation = user?.designation?.toLowerCase() || "";
 
-  const isGB = ["president", "vice president", "vice-president", "general secretary", "treasurer"].includes(userDesignation);
-  const isHRHead = userDept === "human resources" && ["director", "assistant director"].includes(userDesignation);
-  const isRDHead = userDept === "research and development" && ["director", "assistant director"].includes(userDesignation);
-  const isEB = ["director", "assistant director"].includes(userDesignation);
+  const isActive = user?.memberStatus === "Active";
+  const isGB = ["president", "vice president", "vice-president", "general secretary", "treasurer"].includes(userDesignation) && isActive;
+  const isHRHead = userDept === "human resources" && ["director", "assistant director"].includes(userDesignation) && isActive;
+  const isRDHead = userDept === "research and development" && ["director", "assistant director"].includes(userDesignation) && isActive;
+  const isEB = ["director", "assistant director"].includes(userDesignation) && isActive;
 
   if (!isGB && !isEB) {
     return (

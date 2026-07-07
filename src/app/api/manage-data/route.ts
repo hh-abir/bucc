@@ -1,14 +1,10 @@
 import { auth } from "@/auth";
 import dbConnect from "@/lib/dbConnect";
 import { NextRequest, NextResponse } from "next/server";
-import { MongoClient } from "mongodb";
 import { isSuperUser as checkGB } from "@/lib/permissions";
 import generatePassword from "@/helpers/generatePassword";
 import { singleWelcomeMail } from "@/helpers/mailer";
-import { auth as authServer } from "@/lib/auth";
-
-const client = new MongoClient(process.env.MONGODB_URI as string);
-const db = client.db(process.env.MONGODB_DB as string);
+import { auth as authServer, db } from "@/lib/auth";
 
 // Configuration
 const FLUSHABLE_MODELS = [
@@ -121,11 +117,11 @@ export async function GET(request: NextRequest) {
           inquiries: totalInquiries,
           visitors: visitorEstimate,
         },
-        departments: deptData.map(d => ({
+        departments: deptData.map((d: any) => ({
           name: d._id || "Unassigned",
           value: d.count
         })),
-        visitorLogs: visitorLogs.map(log => ({
+        visitorLogs: visitorLogs.map((log: any) => ({
           date: log.date,
           views: log.views || 0,
           visitors: log.visitors || 0

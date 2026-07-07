@@ -75,9 +75,11 @@ const withAuthorization = (
       activeDesignations?.length > 0 &&
       activeDesignations.includes(userDesignation);
 
+    const isSERecruitmentAllowed = config?.allowSERecruitmentAccess && userDesignation === "Senior Executive";
+ 
     if (
       !user ||
-      (!isAlwaysPermitted && (!departmentCheck || !designationCheck))
+      (!isAlwaysPermitted && !isSERecruitmentAllowed && (!departmentCheck || !designationCheck))
     ) {
       return (
         <div>

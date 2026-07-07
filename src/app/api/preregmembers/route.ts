@@ -20,10 +20,18 @@ export async function GET() {
     activeDesignations.push("Senior Executive");
   }
 
-  const { session, isPermitted } = await hasAuth(
+  const { session, isPermitted: defaultPermitted } = await hasAuth(
     activeDesignations,
     permittedDepartments,
   );
+
+  let isPermitted = defaultPermitted;
+  if (session && !isPermitted) {
+    const user = session.user as any;
+    if (config?.allowSERecruitmentAccess && user.designation === "Senior Executive" && user.memberStatus !== "Alumni") {
+      isPermitted = true;
+    }
+  }
 
   if (!session || !isPermitted) {
     return NextResponse.json(

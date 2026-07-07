@@ -66,10 +66,20 @@ export default function RegistrationManagementPage() {
     setIsOpen(true);
   };
 
+  const { data: configData } = useQuery({
+    queryKey: ["recruitment-config"],
+    queryFn: async () => {
+      const res = await fetch("/api/config?key=recruitment_config");
+      if (!res.ok) return { allowSERecruitmentAccess: false };
+      const json = await res.json();
+      return json?.value || { allowSERecruitmentAccess: false };
+    },
+  });
+ 
   const user = session?.user as any;
   const isGB = user ? checkGB(user) : false;
   const isDeptHead = user ? ["Director", "Assistant Director"].includes(user.designation) : false;
-  const isPermitted = isGB || isDeptHead;
+  const isPermitted = isGB || isDeptHead || (configData?.allowSERecruitmentAccess && user?.designation === "Senior Executive");
 
   const { data: pendingMembers, isLoading, isError } = useQuery({
     queryKey: ["pending-onboarding"],
