@@ -166,7 +166,7 @@ export default function MemberRegistration() {
   if (isSuccess) {
     return (
       <div className="fixed inset-0 z-[100] flex items-center justify-center px-4 bg-background/80 backdrop-blur-sm overflow-hidden">
-        <div className="w-full max-w-xl bg-card border border-border shadow-[0_32px_64px_-12px_rgba(0,0,0,0.2)] rounded-3xl p-8 md:p-12 text-center space-y-6 animate-in fade-in zoom-in duration-500">
+        <div className="w-full max-w-xl bg-card border border-border shadow-[0_32px_64px_-12px_rgba(0,0,0,0.2)] rounded-3xl p-6 sm:p-8 md:p-12 text-center space-y-6 animate-in fade-in zoom-in duration-500">
           <div className="mx-auto h-16 w-16 bg-primary/10 rounded-full flex items-center justify-center">
             <Sparkles className="h-8 w-8 text-primary animate-pulse" />
           </div>
@@ -207,9 +207,19 @@ export default function MemberRegistration() {
  
   return (
     <div className="min-h-screen bg-background relative flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8 overflow-hidden">
-      {/* Background neon ambient blur lights */}
-      <div className="absolute top-1/4 left-1/4 -translate-x-1/2 -translate-y-1/2 w-96 h-96 rounded-full bg-primary/5 blur-[120px] pointer-events-none" />
-      <div className="absolute bottom-1/4 right-1/4 translate-x-1/2 translate-y-1/2 w-96 h-96 rounded-full bg-sky-500/5 blur-[120px] pointer-events-none" />
+      {/* Background neon ambient glows (using radial-gradient to prevent GPU blur pixelation on mobile screens) */}
+      <div 
+        className="absolute top-1/4 left-1/4 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] pointer-events-none"
+        style={{
+          background: "radial-gradient(circle, hsla(var(--primary) / 0.05) 0%, transparent 70%)"
+        }}
+      />
+      <div 
+        className="absolute bottom-1/4 right-1/4 translate-x-1/2 translate-y-1/2 w-[500px] h-[500px] pointer-events-none"
+        style={{
+          background: "radial-gradient(circle, rgba(14, 165, 233, 0.05) 0%, transparent 70%)"
+        }}
+      />
  
       <div className="w-full max-w-3xl space-y-6 relative z-10">
         {/* Navigation back and badge */}
@@ -223,7 +233,7 @@ export default function MemberRegistration() {
         </div>
  
         {/* Main Centered Enrollment Card */}
-        <div className="bg-card border border-border shadow-[0_24px_48px_-12px_rgba(0,0,0,0.08)] rounded-3xl overflow-hidden p-6 md:p-10 space-y-8">
+        <div className="bg-card border border-border shadow-[0_24px_48px_-12px_rgba(0,0,0,0.08)] rounded-3xl overflow-hidden p-5 sm:p-8 md:p-10 space-y-8">
           <div className="space-y-2 border-b border-border pb-6">
             <h2 className="text-3xl font-serif text-foreground">Verify & Enroll Account</h2>
             <p className="text-muted-foreground font-light text-sm max-w-lg">
@@ -374,8 +384,8 @@ export default function MemberRegistration() {
               {/* Member Status Radio buttons */}
               <div className="space-y-2">
                 <label className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">Membership Status</label>
-                <div className="flex gap-4">
-                  <label className="flex items-center gap-2 bg-muted/5 border border-border/60 rounded-xl px-4 py-3 cursor-pointer hover:bg-muted/15 transition-all w-1/2">
+                <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
+                  <label className="flex items-center gap-2 bg-muted/5 border border-border/60 rounded-xl px-4 py-3 cursor-pointer hover:bg-muted/15 transition-all w-full sm:w-1/2">
                     <input
                       type="radio"
                       name="memberStatus"
@@ -386,7 +396,7 @@ export default function MemberRegistration() {
                     />
                     <span className="text-sm font-light text-foreground">Current Member</span>
                   </label>
-                  <label className="flex items-center gap-2 bg-muted/5 border border-border/60 rounded-xl px-4 py-3 cursor-pointer hover:bg-muted/15 transition-all w-1/2">
+                  <label className="flex items-center gap-2 bg-muted/5 border border-border/60 rounded-xl px-4 py-3 cursor-pointer hover:bg-muted/15 transition-all w-full sm:w-1/2">
                     <input
                       type="radio"
                       name="memberStatus"
