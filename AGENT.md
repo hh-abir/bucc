@@ -157,6 +157,7 @@ C:\Users\Abir\Desktop\bucc\
 - **MongoClient Connection Pooling sharing:** Consolidated all native driver MongoDB queries to utilize the globally cached client and database instances exported from `src/lib/auth.ts`. Avoided redundant module-level `new MongoClient` instances across REST API routes, solving database connection spikes and ensuring zero leakage during local development (HMR) rebuilds.
 - **Announcement Gating Restructuring:** Gated backend and frontend announcement posting privilege strictly to active Governing Body (GB) and Executive Body (EB) members, ensuring other staff roles (such as Senior Executives and Executives) or inactive members cannot post or delete announcements.
 - **TypeScript Strict Mode Mappings:** Explicitly typed arrow callback arguments in MongoDB native `.map()` statements to satisfy strict type verification checks during compilation.
+- **Member Registration Page Mobile Design Polish:** Optimized the mobile display of `member-registration/page.tsx` by replacing performance-heavy CSS blur filter boxes (which rasterize blocky/pixelated artifacts on iOS Safari and mobile Chrome) with smooth `radial-gradient` backgrounds. Upgraded radio buttons to premium checkable cards, placed helper icons inside input/select fields with uniform `pl-10` padding, and introduced fluid micro-interactions.
 
 ---
 

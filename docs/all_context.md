@@ -92,6 +92,15 @@ The Governing Body can dynamically toggle Senior Executive recruitment evaluatio
   - The "Post Announcement" modal trigger on the portal dashboard and the Broadcast Center page hides dynamically for non-authorized roles.
   - The backend endpoints `/api/announcements` enforce role and activity status verification on both `POST` and `DELETE` requests.
 
+### E. Public Portal Enrollment (`/member-registration`)
+- **Purpose:** Public enrollment staging panel for existing BUCC members or alumni who do not yet have access.
+- **Design System & Performance Optimization:**
+  - **Centered Card Layout:** Houses the enrollment elements inside a clean, centered layout wrapper (`max-w-3xl`) matching standard login screen aesthetics.
+  - **Premium Radio Cards:** Uses custom checked cards for membership status selectors to provide descriptive cues and interactive scale transitions.
+  - **Aligned Form Fields:** Implements a unified icon-in-input alignment (`pl-10`) where all Lucide support icons sit inside input and select elements.
+  - **Vector Gradient Ambient Glows:** Replaces resource-heavy Gaussian CSS blur boxes (`blur-[120px]`) with smooth, browser-native `radial-gradient` glow overlays to eliminate pixelation artifacts on high-DPI mobile devices (e.g., iOS Safari/Chrome).
+  - **Responsive Layout:** Uses responsive padding structures (`p-5 sm:p-8 md:p-10`) and stacking flex containers to scale layouts cleanly across small phone screens.
+
 ---
 
 ## 6. Constants & Schema Cleanup Rules

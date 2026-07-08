@@ -3,19 +3,19 @@
 function welcomeMail(name: String, email?: String, password?: String) {
   return `
 Dear ${name},
-Welcome to BUCC. We are excited to have you on board. Your portal is now ready for you to access. Please use the following credentials to login and complete your profile. Remember to completing your profile is mandatory and crucial for you to join our club groups.
-
+Welcome to BUCC. Your account has been created successfully, and your portal is now ready to access. Please use the following credentials to log in and complete your profile.
 
 Your login credentials are:
 Email: ${email}
 Password: ${password}
 
-Please change your password after logging in with a strong one from Settings. See you soon!
+After logging in, you can change your password to a strong one from Settings or add two-factor authentication. See you soon!
 
 Note: This is an automated email. Please do not reply to this email.
 
 Regards,
-BUCC Team
+BUCC Web Team
+Research and Development Department
 `;
 }
 
@@ -26,11 +26,18 @@ Please verify your email by clicking the link below:
 ${process.env.DOMAIN_URL}${process.env.NEXT_PUBLIC_API_URL}/users/verify?${verifyToken}`;
 }
 
-function resetMail(resetToken: String) {
+function resetMail(resetToken: string) {
   return `
-    Dear user,
-    Please reset your password by clicking the link below:
-    ${resetToken}`;
+    Dear User,
+
+    You recently requested to reset your password. Please click the link below to set a new one:
+    ${resetToken}
+
+    If you did not request this change, you can safely ignore this email.
+
+    Regards,
+    BUCC Web Team
+  `;
 }
 
 function sendVerifyToken(name: String, verifyToken: String) {

@@ -7,9 +7,10 @@ import Link from "next/link";
 import { 
   User, Mail, Hash, Phone, Building2, Calendar, 
   Sparkles, ChevronRight, Lock, Eye, EyeOff, ShieldAlert,
-  ArrowLeft, Users, Briefcase
+  ArrowLeft, Users, Briefcase, GraduationCap
 } from "lucide-react";
 import BRACUDepartments from "@/constants/BRACUDepartments";
+import { cn } from "@/lib/utils";
  
 const BUCC_DEPARTMENTS = [
   "Communication and Marketing",
@@ -165,8 +166,8 @@ export default function MemberRegistration() {
  
   if (isSuccess) {
     return (
-      <div className="fixed inset-0 z-[100] flex items-center justify-center px-4 bg-background/80 backdrop-blur-sm overflow-hidden">
-        <div className="w-full max-w-xl bg-card border border-border shadow-[0_32px_64px_-12px_rgba(0,0,0,0.2)] rounded-3xl p-6 sm:p-8 md:p-12 text-center space-y-6 animate-in fade-in zoom-in duration-500">
+      <div className="fixed inset-0 z-[100] flex items-center justify-center px-4 bg-background/80 backdrop-blur-sm overflow-hidden animate-in fade-in duration-300">
+        <div className="w-full max-w-xl bg-card border border-border shadow-[0_32px_64px_-12px_rgba(0,0,0,0.2)] rounded-3xl p-6 sm:p-10 md:p-12 text-center space-y-6 animate-in zoom-in-95 duration-500">
           <div className="mx-auto h-16 w-16 bg-primary/10 rounded-full flex items-center justify-center">
             <Sparkles className="h-8 w-8 text-primary animate-pulse" />
           </div>
@@ -175,12 +176,12 @@ export default function MemberRegistration() {
               Registration Queued!
             </h1>
             <p className="text-muted-foreground font-light text-sm max-w-md mx-auto leading-relaxed">
-              Hey <span className="text-foreground font-semibold">{formData.name}</span>, your member account request is submitted. Reviewers will check your credentials before account activation.
+              Hey <span className="text-foreground font-semibold">{formData.name}</span>, your member account request has been successfully submitted. Reviewers will check your credentials before account activation.
             </p>
           </div>
           
           <div className="p-4 rounded-xl bg-muted/60 border border-border/40 text-left flex items-start gap-3 text-xs leading-relaxed max-w-md mx-auto">
-            <ShieldAlert className="h-5 w-5 text-amber-500 shrink-0 mt-0.5" />
+            <ShieldAlert className="h-5 w-5 text-amber-500 shrink-0 mt-0.5 animate-bounce" />
             <div>
               <h4 className="font-semibold text-foreground">Next Review Steps</h4>
               <p className="text-muted-foreground mt-1">
@@ -195,7 +196,7 @@ export default function MemberRegistration() {
           <div className="pt-2 max-w-xs mx-auto">
             <Link 
               href="/"
-              className="flex items-center justify-center w-full bg-primary text-primary-foreground py-3 rounded-lg font-medium transition-all hover:bg-primary/95"
+              className="flex items-center justify-center w-full bg-primary text-primary-foreground py-3 rounded-xl font-medium transition-all hover:bg-primary/95 shadow-md active:scale-98"
             >
               Return to Homepage
             </Link>
@@ -211,31 +212,31 @@ export default function MemberRegistration() {
       <div 
         className="absolute top-1/4 left-1/4 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] pointer-events-none"
         style={{
-          background: "radial-gradient(circle, hsla(var(--primary) / 0.05) 0%, transparent 70%)"
+          background: "radial-gradient(circle, hsla(var(--primary) / 0.04) 0%, transparent 70%)"
         }}
       />
       <div 
         className="absolute bottom-1/4 right-1/4 translate-x-1/2 translate-y-1/2 w-[500px] h-[500px] pointer-events-none"
         style={{
-          background: "radial-gradient(circle, rgba(14, 165, 233, 0.05) 0%, transparent 70%)"
+          background: "radial-gradient(circle, rgba(14, 165, 233, 0.04) 0%, transparent 70%)"
         }}
       />
  
       <div className="w-full max-w-3xl space-y-6 relative z-10">
         {/* Navigation back and badge */}
         <div className="flex justify-between items-center px-2">
-          <Link href="/login" className="inline-flex items-center gap-1.5 text-muted-foreground hover:text-foreground transition-all text-xs font-light">
+          <Link href="/login" className="inline-flex items-center gap-1.5 text-muted-foreground hover:text-foreground hover:-translate-x-0.5 transition-all text-xs font-light">
             <ArrowLeft className="h-3.5 w-3.5" /> Back to Log In
           </Link>
-          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-medium bg-primary/10 text-primary border border-primary/20">
+          <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-[10px] font-medium bg-primary/10 text-primary border border-primary/20">
             <Users className="h-3 w-3" /> Member Portal enrollment
           </span>
         </div>
  
         {/* Main Centered Enrollment Card */}
-        <div className="bg-card border border-border shadow-[0_24px_48px_-12px_rgba(0,0,0,0.08)] rounded-3xl overflow-hidden p-5 sm:p-8 md:p-10 space-y-8">
+        <div className="bg-card border border-border shadow-[0_24px_48px_-12px_rgba(0,0,0,0.06)] rounded-3xl overflow-hidden p-5 sm:p-8 md:p-10 space-y-8">
           <div className="space-y-2 border-b border-border pb-6">
-            <h2 className="text-3xl font-serif text-foreground">Verify & Enroll Account</h2>
+            <h2 className="text-3xl font-serif text-foreground tracking-tight">Verify & Enroll Account</h2>
             <p className="text-muted-foreground font-light text-sm max-w-lg">
               This panel registers accounts only for existing BUCC members or alumni. Fill in your details below to stage your account activation.
             </p>
@@ -243,63 +244,87 @@ export default function MemberRegistration() {
  
           <form onSubmit={onSubmit} className="space-y-8">
             {/* Group 1: Personal Credentials */}
-            <div className="space-y-4">
-              <h3 className="text-[11px] font-bold uppercase tracking-widest text-primary border-b border-border/40 pb-1 w-fit">
+            <div className="space-y-5">
+              <h3 className="text-[10px] font-bold uppercase tracking-widest text-primary border-b border-border/40 pb-1 w-fit">
                 Account Credentials
               </h3>
               
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {/* Full Name */}
                 <div className="space-y-1.5">
-                  <label htmlFor="name" className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
-                    <User className="h-3.5 w-3.5" /> Full Name
+                  <label htmlFor="name" className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
+                    Full Name
                   </label>
-                  <input
-                    id="name"
-                    name="name"
-                    required
-                    value={formData.name}
-                    onChange={handleChange}
-                    placeholder="e.g. Nafis Sadique"
-                    className="w-full bg-muted/20 border border-border/40 rounded-lg px-3.5 py-2.5 focus:outline-none focus:border-primary focus:bg-background transition-all text-sm font-light"
-                  />
+                  <div className="relative group">
+                    <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-muted-foreground group-focus-within:text-primary transition-colors duration-200">
+                      <User className="h-4 w-4" />
+                    </span>
+                    <input
+                      id="name"
+                      name="name"
+                      required
+                      value={formData.name}
+                      onChange={handleChange}
+                      placeholder="e.g. Nafis Sadique"
+                      className="w-full bg-muted/10 border border-border/50 rounded-xl pl-10 pr-4 py-2.5 focus:outline-none focus:border-primary focus:bg-background focus:ring-2 focus:ring-primary/10 transition-all duration-300 text-sm font-light"
+                    />
+                  </div>
                 </div>
+ 
+                {/* Student ID */}
                 <div className="space-y-1.5">
-                  <label htmlFor="studentId" className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
-                    <Hash className="h-3.5 w-3.5" /> Student ID
+                  <label htmlFor="studentId" className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
+                    Student ID
                   </label>
-                  <input
-                    id="studentId"
-                    name="studentId"
-                    required
-                    value={formData.studentId}
-                    onChange={handleChange}
-                    placeholder="e.g. 21101001"
-                    className="w-full bg-muted/20 border border-border/40 rounded-lg px-3.5 py-2.5 focus:outline-none focus:border-primary focus:bg-background transition-all text-sm font-mono font-light"
-                  />
+                  <div className="relative group">
+                    <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-muted-foreground group-focus-within:text-primary transition-colors duration-200">
+                      <Hash className="h-4 w-4" />
+                    </span>
+                    <input
+                      id="studentId"
+                      name="studentId"
+                      required
+                      value={formData.studentId}
+                      onChange={handleChange}
+                      placeholder="e.g. 21101001"
+                      className="w-full bg-muted/10 border border-border/50 rounded-xl pl-10 pr-4 py-2.5 focus:outline-none focus:border-primary focus:bg-background focus:ring-2 focus:ring-primary/10 transition-all duration-300 text-sm font-mono font-light"
+                    />
+                  </div>
                 </div>
               </div>
  
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="space-y-1.5 relative">
-                  <label htmlFor="email" className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground flex items-center justify-between">
-                    <span className="flex items-center gap-1.5"><Mail className="h-3.5 w-3.5" /> {isAlumniSelected && noGSuite ? "Personal Email" : "G-Suite Email"}</span>
+                {/* Email */}
+                <div className="space-y-1.5">
+                  <label htmlFor="email" className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
+                    {isAlumniSelected && noGSuite ? "Personal Email" : "G-Suite Email"}
                   </label>
-                  <input
-                    id="email"
-                    name="email"
-                    type="email"
-                    required
-                    value={formData.email}
-                    onChange={handleChange}
-                    placeholder={isAlumniSelected && noGSuite ? "name@gmail.com" : "name@g.bracu.ac.bd"}
-                    className="w-full bg-muted/20 border border-border/40 rounded-lg px-3.5 py-2.5 focus:outline-none focus:border-primary focus:bg-background transition-all text-sm font-light"
-                  />
+                  <div className="relative group">
+                    <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-muted-foreground group-focus-within:text-primary transition-colors duration-200">
+                      <Mail className="h-4 w-4" />
+                    </span>
+                    <input
+                      id="email"
+                      name="email"
+                      type="email"
+                      required
+                      value={formData.email}
+                      onChange={handleChange}
+                      placeholder={isAlumniSelected && noGSuite ? "name@gmail.com" : "name@g.bracu.ac.bd"}
+                      className="w-full bg-muted/10 border border-border/50 rounded-xl pl-10 pr-4 py-2.5 focus:outline-none focus:border-primary focus:bg-background focus:ring-2 focus:ring-primary/10 transition-all duration-300 text-sm font-light"
+                    />
+                  </div>
                 </div>
-                <div className="space-y-1.5 relative">
-                  <label htmlFor="password" className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
-                    <Lock className="h-3.5 w-3.5" /> Password
+ 
+                {/* Password */}
+                <div className="space-y-1.5">
+                  <label htmlFor="password" className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
+                    Password
                   </label>
-                  <div className="relative">
+                  <div className="relative group">
+                    <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-muted-foreground group-focus-within:text-primary transition-colors duration-200">
+                      <Lock className="h-4 w-4" />
+                    </span>
                     <input
                       id="password"
                       name="password"
@@ -308,7 +333,7 @@ export default function MemberRegistration() {
                       value={formData.password}
                       onChange={handleChange}
                       placeholder="Min 6 characters"
-                      className="w-full bg-muted/20 border border-border/40 rounded-lg pl-3.5 pr-10 py-2.5 focus:outline-none focus:border-primary focus:bg-background transition-all text-sm font-light"
+                      className="w-full bg-muted/10 border border-border/50 rounded-xl pl-10 pr-10 py-2.5 focus:outline-none focus:border-primary focus:bg-background focus:ring-2 focus:ring-primary/10 transition-all duration-300 text-sm font-light"
                     />
                     <button
                       type="button"
@@ -324,7 +349,7 @@ export default function MemberRegistration() {
               {/* Alumni-specific G-Suite access checkbox */}
               {isAlumniSelected && (
                 <div className="px-1 animate-in fade-in duration-200">
-                  <label className="flex items-center gap-2 cursor-pointer select-none text-xs font-light text-muted-foreground hover:text-foreground transition-colors">
+                  <label className="flex items-center gap-2.5 cursor-pointer select-none text-xs font-light text-muted-foreground hover:text-foreground transition-colors">
                     <input
                       type="checkbox"
                       checked={noGSuite}
@@ -332,7 +357,7 @@ export default function MemberRegistration() {
                         setNoGSuite(e.target.checked);
                         setFormData(prev => ({ ...prev, email: "" })); // Clear email to avoid validation confusion
                       }}
-                      className="accent-primary h-3.5 w-3.5 rounded border-border"
+                      className="accent-primary h-4 w-4 rounded border-border"
                     />
                     I don't have access to my G-Suite student email (Use personal email for registration)
                   </label>
@@ -340,153 +365,217 @@ export default function MemberRegistration() {
               )}
  
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {/* Phone Number */}
                 <div className="space-y-1.5">
-                  <label htmlFor="phoneNumber" className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
-                    <Phone className="h-3.5 w-3.5" /> Phone Number
+                  <label htmlFor="phoneNumber" className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
+                    Phone Number
                   </label>
-                  <input
-                    id="phoneNumber"
-                    name="phoneNumber"
-                    required
-                    value={formData.phoneNumber}
-                    onChange={handleChange}
-                    placeholder="e.g. 017XXXXXXXX"
-                    className="w-full bg-muted/20 border border-border/40 rounded-lg px-3.5 py-2.5 focus:outline-none focus:border-primary focus:bg-background transition-all text-sm font-light"
-                  />
+                  <div className="relative group">
+                    <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-muted-foreground group-focus-within:text-primary transition-colors duration-200">
+                      <Phone className="h-4 w-4" />
+                    </span>
+                    <input
+                      id="phoneNumber"
+                      name="phoneNumber"
+                      required
+                      value={formData.phoneNumber}
+                      onChange={handleChange}
+                      placeholder="e.g. 017XXXXXXXX"
+                      className="w-full bg-muted/10 border border-border/50 rounded-xl pl-10 pr-4 py-2.5 focus:outline-none focus:border-primary focus:bg-background focus:ring-2 focus:ring-primary/10 transition-all duration-300 text-sm font-light"
+                    />
+                  </div>
                 </div>
+ 
+                {/* Academic Department */}
                 <div className="space-y-1.5">
-                  <label htmlFor="bracuDepartment" className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
-                    <Building2 className="h-3.5 w-3.5" /> Academic Department
+                  <label htmlFor="bracuDepartment" className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
+                    Academic Department
                   </label>
-                  <select
-                    id="bracuDepartment"
-                    name="bracuDepartment"
-                    required
-                    value={formData.bracuDepartment}
-                    onChange={handleChange}
-                    className="w-full bg-muted/20 border border-border/40 rounded-lg px-3 py-2.5 focus:outline-none focus:border-primary focus:bg-background transition-all text-sm cursor-pointer font-light"
-                  >
-                    <option value="" disabled>Select Department</option>
-                    {BRACUDepartments.map(dept => (
-                      <option key={dept.name} value={dept.name}>{dept.name}</option>
-                    ))}
-                  </select>
+                  <div className="relative group">
+                    <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-muted-foreground group-focus-within:text-primary transition-colors duration-200 pointer-events-none">
+                      <Building2 className="h-4 w-4" />
+                    </span>
+                    <select
+                      id="bracuDepartment"
+                      name="bracuDepartment"
+                      required
+                      value={formData.bracuDepartment}
+                      onChange={handleChange}
+                      className="w-full bg-muted/10 border border-border/50 rounded-xl pl-10 pr-4 py-2.5 focus:outline-none focus:border-primary focus:bg-background focus:ring-2 focus:ring-primary/10 transition-all duration-300 text-sm cursor-pointer font-light appearance-none"
+                    >
+                      <option value="" disabled className="bg-background">Select Department</option>
+                      {BRACUDepartments.map(dept => (
+                        <option key={dept.name} value={dept.name} className="bg-background">{dept.name}</option>
+                      ))}
+                    </select>
+                    <span className="absolute right-3.5 top-1/2 -translate-y-1/2 text-muted-foreground pointer-events-none border-l border-border/50 pl-2">
+                      ▼
+                    </span>
+                  </div>
                 </div>
               </div>
             </div>
  
             {/* Group 2: BUCC Membership profile details */}
             <div className="space-y-5 pt-6 border-t border-border">
-              <h3 className="text-[11px] font-bold uppercase tracking-widest text-primary border-b border-border/40 pb-1 w-fit">
+              <h3 className="text-[10px] font-bold uppercase tracking-widest text-primary border-b border-border/40 pb-1 w-fit">
                 BUCC Club Profile
               </h3>
  
-              {/* Member Status Radio buttons */}
-              <div className="space-y-2">
-                <label className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">Membership Status</label>
-                <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
-                  <label className="flex items-center gap-2 bg-muted/5 border border-border/60 rounded-xl px-4 py-3 cursor-pointer hover:bg-muted/15 transition-all w-full sm:w-1/2">
+              {/* Member Status Radio Card Option Selector */}
+              <div className="space-y-2.5">
+                <label className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Membership Status</label>
+                <div className="flex flex-col sm:flex-row gap-4">
+                  {/* Current Member */}
+                  <label className={cn(
+                    "flex flex-col items-center justify-center p-4 border rounded-2xl cursor-pointer transition-all duration-300 w-full sm:w-1/2 text-center space-y-1.5 group/card",
+                    formData.memberStatus === "Active"
+                      ? "border-primary bg-primary/5 shadow-[0_0_16px_rgba(59,130,246,0.06)] text-foreground"
+                      : "border-border/50 bg-muted/5 text-muted-foreground hover:bg-muted/10 hover:border-border"
+                  )}>
                     <input
                       type="radio"
                       name="memberStatus"
                       value="Active"
                       checked={formData.memberStatus === "Active"}
                       onChange={handleChange}
-                      className="accent-primary h-4 w-4"
+                      className="sr-only"
                     />
-                    <span className="text-sm font-light text-foreground">Current Member</span>
+                    <Users className={cn("h-6 w-6 transition-transform group-hover/card:scale-110 duration-300", formData.memberStatus === "Active" ? "text-primary" : "text-muted-foreground")} />
+                    <div>
+                      <span className="text-sm font-semibold block">Current Member</span>
+                      <span className="text-[10px] font-light opacity-80 block mt-0.5">Actively serving in BUCC</span>
+                    </div>
                   </label>
-                  <label className="flex items-center gap-2 bg-muted/5 border border-border/60 rounded-xl px-4 py-3 cursor-pointer hover:bg-muted/15 transition-all w-full sm:w-1/2">
+                  
+                  {/* Alumni */}
+                  <label className={cn(
+                    "flex flex-col items-center justify-center p-4 border rounded-2xl cursor-pointer transition-all duration-300 w-full sm:w-1/2 text-center space-y-1.5 group/card",
+                    formData.memberStatus === "Alumni"
+                      ? "border-primary bg-primary/5 shadow-[0_0_16px_rgba(59,130,246,0.06)] text-foreground"
+                      : "border-border/50 bg-muted/5 text-muted-foreground hover:bg-muted/10 hover:border-border"
+                  )}>
                     <input
                       type="radio"
                       name="memberStatus"
                       value="Alumni"
                       checked={formData.memberStatus === "Alumni"}
                       onChange={handleChange}
-                      className="accent-primary h-4 w-4"
+                      className="sr-only"
                     />
-                    <span className="text-sm font-light text-foreground">Alumni</span>
+                    <GraduationCap className={cn("h-6 w-6 transition-transform group-hover/card:scale-110 duration-300", formData.memberStatus === "Alumni" ? "text-primary" : "text-muted-foreground")} />
+                    <div>
+                      <span className="text-sm font-semibold block">Alumni</span>
+                      <span className="text-[10px] font-light opacity-80 block mt-0.5">Graduated or left active duties</span>
+                    </div>
                   </label>
                 </div>
               </div>
  
-              {/* Department Dropdown (Governing Body included only if Alumni is selected) */}
-              <div className="space-y-1.5 animate-in fade-in duration-200">
-                <label htmlFor="buccDepartment" className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
-                  <Building2 className="h-3.5 w-3.5" /> Assigned BUCC Department
+              {/* Department Dropdown */}
+              <div className="space-y-1.5">
+                <label htmlFor="buccDepartment" className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
+                  Assigned BUCC Department
                 </label>
-                <select
-                  id="buccDepartment"
-                  name="buccDepartment"
-                  required
-                  value={formData.buccDepartment}
-                  onChange={handleChange}
-                  className="w-full bg-muted/20 border border-border/40 rounded-lg px-3 py-2.5 focus:outline-none focus:border-primary focus:bg-background transition-all text-sm cursor-pointer font-light"
-                >
-                  <option value="" disabled>Select BUCC Department</option>
-                  {departmentOptions.map(dept => (
-                    <option key={dept} value={dept}>{dept}</option>
-                  ))}
-                </select>
-              </div>
- 
-              {/* Designation Selector */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="space-y-1.5">
-                  <label htmlFor="designation" className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
-                    <Briefcase className="h-3.5 w-3.5" /> Assigned Position / Role
-                  </label>
+                <div className="relative group">
+                  <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-muted-foreground group-focus-within:text-primary transition-colors duration-200 pointer-events-none">
+                    <Building2 className="h-4 w-4" />
+                  </span>
                   <select
-                    id="designation"
-                    name="designation"
+                    id="buccDepartment"
+                    name="buccDepartment"
                     required
-                    value={formData.designation}
+                    value={formData.buccDepartment}
                     onChange={handleChange}
-                    className="w-full bg-muted/20 border border-border/40 rounded-lg px-3 py-2.5 focus:outline-none focus:border-primary focus:bg-background transition-all text-sm cursor-pointer font-light"
+                    className="w-full bg-muted/10 border border-border/50 rounded-xl pl-10 pr-4 py-2.5 focus:outline-none focus:border-primary focus:bg-background focus:ring-2 focus:ring-primary/10 transition-all duration-300 text-sm cursor-pointer font-light appearance-none"
                   >
-                    <option value="" disabled>Select Designation</option>
-                    {designationOptions.map(des => (
-                      <option key={des} value={des}>{des}</option>
+                    <option value="" disabled className="bg-background">Select BUCC Department</option>
+                    {departmentOptions.map(dept => (
+                      <option key={dept} value={dept} className="bg-background">{dept}</option>
                     ))}
                   </select>
+                  <span className="absolute right-3.5 top-1/2 -translate-y-1/2 text-muted-foreground pointer-events-none border-l border-border/50 pl-2">
+                    ▼
+                  </span>
+                </div>
+              </div>
+ 
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {/* Designation Selector */}
+                <div className="space-y-1.5">
+                  <label htmlFor="designation" className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
+                    Assigned Position / Role
+                  </label>
+                  <div className="relative group">
+                    <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-muted-foreground group-focus-within:text-primary transition-colors duration-200 pointer-events-none">
+                      <Briefcase className="h-4 w-4" />
+                    </span>
+                    <select
+                      id="designation"
+                      name="designation"
+                      required
+                      value={formData.designation}
+                      onChange={handleChange}
+                      className="w-full bg-muted/10 border border-border/50 rounded-xl pl-10 pr-4 py-2.5 focus:outline-none focus:border-primary focus:bg-background focus:ring-2 focus:ring-primary/10 transition-all duration-300 text-sm cursor-pointer font-light appearance-none"
+                    >
+                      <option value="" disabled className="bg-background">Select Designation</option>
+                      {designationOptions.map(des => (
+                        <option key={des} value={des} className="bg-background">{des}</option>
+                      ))}
+                    </select>
+                    <span className="absolute right-3.5 top-1/2 -translate-y-1/2 text-muted-foreground pointer-events-none border-l border-border/50 pl-2">
+                      ▼
+                    </span>
+                  </div>
                 </div>
  
-                {/* Joined BRACU */}
+                {/* Joined BRACU Semester */}
                 <div className="space-y-1.5">
-                  <label htmlFor="joinedBracu" className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
-                    <Calendar className="h-3.5 w-3.5" /> Joined BRACU Semester
+                  <label htmlFor="joinedBracu" className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
+                    Joined BRACU Semester
                   </label>
+                  <div className="relative group">
+                    <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-muted-foreground group-focus-within:text-primary transition-colors duration-200">
+                      <Calendar className="h-4 w-4" />
+                    </span>
+                    <input
+                      id="joinedBracu"
+                      name="joinedBracu"
+                      value={formData.joinedBracu}
+                      onChange={handleChange}
+                      placeholder="e.g. Spring 2021"
+                      className="w-full bg-muted/10 border border-border/50 rounded-xl pl-10 pr-4 py-2.5 focus:outline-none focus:border-primary focus:bg-background focus:ring-2 focus:ring-primary/10 transition-all duration-300 text-sm font-light"
+                    />
+                  </div>
+                </div>
+              </div>
+ 
+              {/* Optional Joined BUCC Semester */}
+              <div className="space-y-1.5 animate-in fade-in duration-200">
+                <label htmlFor="joinedBucc" className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
+                  Joined BUCC Semester
+                </label>
+                <div className="relative group">
+                  <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-muted-foreground group-focus-within:text-primary transition-colors duration-200">
+                    <Calendar className="h-4 w-4" />
+                  </span>
                   <input
-                    id="joinedBracu"
-                    name="joinedBracu"
-                    value={formData.joinedBracu}
+                    id="joinedBucc"
+                    name="joinedBucc"
+                    value={formData.joinedBucc}
                     onChange={handleChange}
-                    placeholder="e.g. Spring 2021"
-                    className="w-full bg-muted/20 border border-border/40 rounded-lg px-3.5 py-2.5 focus:outline-none focus:border-primary focus:bg-background transition-all text-sm font-light"
+                    placeholder="e.g. Fall 2021"
+                    className="w-full bg-muted/10 border border-border/50 rounded-xl pl-10 pr-4 py-2.5 focus:outline-none focus:border-primary focus:bg-background focus:ring-2 focus:ring-primary/10 transition-all duration-300 text-sm font-light"
                   />
                 </div>
               </div>
- 
-              {/* Optional Joined BUCC */}
-              <div className="space-y-1.5 animate-in fade-in duration-200">
-                <label htmlFor="joinedBucc" className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
-                  <Calendar className="h-3.5 w-3.5" /> Joined BUCC Semester
-                </label>
-                <input
-                  id="joinedBucc"
-                  name="joinedBucc"
-                  value={formData.joinedBucc}
-                  onChange={handleChange}
-                  placeholder="e.g. Fall 2021"
-                  className="w-full bg-muted/20 border border-border/40 rounded-lg px-3.5 py-2.5 focus:outline-none focus:border-primary focus:bg-background transition-all text-sm font-light"
-                />
-              </div>
             </div>
  
+            {/* Submit Button */}
             <button
               type="submit"
               disabled={isSubmitting}
-              className="w-full bg-primary text-primary-foreground py-3.5 rounded-xl font-medium transition-all hover:bg-primary/95 disabled:opacity-50 flex items-center justify-center gap-2 text-base shadow-sm hover:shadow active:scale-[0.99]"
+              className="w-full bg-gradient-to-r from-primary to-primary/95 text-primary-foreground py-3.5 rounded-xl font-medium transition-all hover:bg-primary/90 disabled:opacity-50 flex items-center justify-center gap-2 text-base shadow-md hover:shadow-lg active:scale-[0.99] duration-300"
             >
               {isSubmitting ? "Submitting Registration..." : "Submit Registration Request"}
               <ChevronRight className="h-4 w-4" />
