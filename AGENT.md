@@ -160,6 +160,7 @@ C:\Users\Abir\Desktop\bucc\
 - **Member Registration Page Mobile Design Polish:** Optimized the mobile display of `member-registration/page.tsx` by replacing performance-heavy CSS blur filter boxes (which rasterize blocky/pixelated artifacts on iOS Safari and mobile Chrome) with smooth `radial-gradient` backgrounds. Upgraded radio buttons to premium checkable cards, placed helper icons inside input/select fields with uniform `pl-10` padding, and introduced fluid micro-interactions.
 - **Welcoming Preloader Screen Polish:** Redesigned the entrance preloader overlay (`Preloader.tsx`) to support smooth opacity fade-out exits. Relocated the loading percentage text into a giant counter in the bottom-right corner, and applied a slow ambient drop-shadow glow transition to the BUCC logo and the "Upgrade Yourself" motto.
 - **Above-The-Fold Image Loading Priority:** Marked the persistent navigation header logo `Image` component (`Navbar.tsx`) with the `priority` attribute. This forces eager loading and high fetch priority, resolving the Chromium console intervention warning regarding lazy-loaded images in the initial viewport.
+- **Static Caching of Default Hero Slides:** Saved the 3 default Unsplash banner images locally inside the `/public/images/` assets directory and updated the `HeroCarousel.tsx` default state properties to use static `/images/hero-slide-*.jpg` paths. This eliminates dependency on remote Unsplash domains during public layout paint passes.
 
 ---
 

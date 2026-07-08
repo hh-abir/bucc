@@ -187,3 +187,6 @@ This document outlines all features, security refactoring, database schemas, and
     *   Refactored the typewriter effects: the logo and the text "Upgrade Yourself" render instantly and utilize a calm neon breathing filter glow.
 *   **Above-The-Fold Image Loading Priority Fix ([Navbar.tsx](file:///C:/Users/Abir/Desktop/bucc-clean-history/src/components/Navbar.tsx)):**
     *   Assigned the `priority` prop to the main navigation header logo `Image` component. This marks it for eager loading and high fetch priority, resolving the Chromium console intervention warning about lazy-loaded visible viewport images.
+*   **Static Caching of Default Hero Slides ([HeroCarousel.tsx](file:///C:/Users/Abir/Desktop/bucc-clean-history/src/components/home/HeroCarousel.tsx)):**
+    *   Downloaded the 3 default remote Unsplash slide images and stored them locally in the static public assets directory (`/public/images/hero-slide-1.jpg`, `hero-slide-2.jpg`, and `hero-slide-3.jpg`).
+    *   Updated default hero slide object array configuration references to fetch local assets instead of calling external domains, optimizing LCP/CLS layout stability and supporting offline builds.
