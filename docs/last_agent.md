@@ -181,3 +181,9 @@ This document outlines all features, security refactoring, database schemas, and
     *   Replaced GPU-heavy CSS `blur-[120px]` background elements with smooth, high-fidelity native `radial-gradient` overlays, eliminating blocky rendering and pixelation on high-DPI mobile screens (such as iOS Safari/Chrome).
     *   Redesigned the membership status options from standard radio inputs into premium checked option cards featuring dynamic scale transitions, glowing hover borders, and description details.
     *   Cleaned input containers to place helper icons directly inside inputs, setting a standard left offset (`pl-10`) for a unified grid, and optimized form layout padding structures to scale smoothly down to small mobile displays.
+*   **Welcoming Preloader Screen Optimization ([Preloader.tsx](file:///C:/Users/Abir/Desktop/bucc-clean-history/src/components/public/Preloader.tsx)):**
+    *   Replaced the vertical slide-up transition with a smooth, high-end opacity fade exit reveal.
+    *   Relocated the progress counter from a centered bar to a clean, giant number display in the bottom-right corner.
+    *   Refactored the typewriter effects: the logo and the text "Upgrade Yourself" render instantly and utilize a calm neon breathing filter glow.
+*   **Above-The-Fold Image Loading Priority Fix ([Navbar.tsx](file:///C:/Users/Abir/Desktop/bucc-clean-history/src/components/Navbar.tsx)):**
+    *   Assigned the `priority` prop to the main navigation header logo `Image` component. This marks it for eager loading and high fetch priority, resolving the Chromium console intervention warning about lazy-loaded visible viewport images.

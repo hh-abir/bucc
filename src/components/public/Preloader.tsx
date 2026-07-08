@@ -6,12 +6,7 @@ import Image from "next/image";
  
 export default function Preloader() {
   const [show, setShow] = useState(true);
-  const [line1, setLine1] = useState("");
-  const [line2, setLine2] = useState("");
   const [progress, setProgress] = useState(1);
- 
-  const word1 = "UPGRADE";
-  const word2 = "YOURSELF.";
  
   useEffect(() => {
     // Check if the site has already preloaded in this browser session
@@ -21,28 +16,12 @@ export default function Preloader() {
       return;
     }
  
-    // Otherwise, lock scrolling and run the cinematic loading sequence
+    // Lock scrolling during loading sequence
     document.body.style.overflow = "hidden";
- 
-    let i = 0;
-    let j = 0;
- 
-    // Typewriter sequence
-    const typingInterval = setInterval(() => {
-      if (i < word1.length) {
-        setLine1(word1.substring(0, i + 1));
-        i++;
-      } else if (j < word2.length) {
-        setLine2(word2.substring(0, j + 1));
-        j++;
-      } else {
-        clearInterval(typingInterval);
-      }
-    }, 75);
  
     // Smooth 1% to 100% progress counter
     let startVal = 1;
-    const progressDuration = 2400;
+    const progressDuration = 2000;
     const stepInterval = 20;
     const totalSteps = progressDuration / stepInterval;
     const incrementPerStep = 99 / totalSteps;
@@ -57,15 +36,14 @@ export default function Preloader() {
       }
     }, stepInterval);
  
-    // Mark as preloaded, unlock scroll, and slide overlay up
+    // Mark as preloaded and unlock scrolling on end
     const timeout = setTimeout(() => {
       setShow(false);
       sessionStorage.setItem("bucc-portal-preloaded", "true");
       document.body.style.overflow = "";
-    }, 3200);
+    }, 2600);
  
     return () => {
-      clearInterval(typingInterval);
       clearInterval(progressInterval);
       clearTimeout(timeout);
       document.body.style.overflow = "";
@@ -76,73 +54,74 @@ export default function Preloader() {
     <AnimatePresence>
       {show && (
         <motion.div
-          initial={{ y: 0 }}
+          initial={{ opacity: 1 }}
           exit={{ 
-            y: "-100%",
-            transition: { duration: 0.9, ease: [0.76, 0, 0.24, 1] } 
+            opacity: 0,
+            transition: { duration: 0.8, ease: "easeInOut" } 
           }}
-          className="fixed inset-0 z-[9999] bg-[#0c0d0e] flex flex-col items-center justify-center text-white"
+          className="fixed inset-0 z-[9999] bg-[#090a0b] flex flex-col items-center justify-center text-white"
         >
-          {/* Horizontal Logo */}
-          <motion.div
-            initial={{ opacity: 0, y: -10 }}
-            animate={{ 
-              opacity: 1, 
-              y: 0,
-              transition: { duration: 0.7, ease: "easeOut" }
-            }}
-            exit={{ 
-              opacity: 0, 
-              scale: 0.95,
-              transition: { duration: 0.3 }
-            }}
-            className="relative h-16 w-48 md:h-20 md:w-60 mb-6 select-none"
-          >
-            <Image
-              src="/assets/bucc-logo.svg"
-              alt="BUCC Logo"
-              fill
-              priority
-              className="object-contain invert hue-rotate-180"
-            />
-          </motion.div>
+          {/* Centered Logo & Motto */}
+          <div className="flex flex-col items-center justify-center text-center space-y-4">
+            {/* Logo with pulsing shadow highlighting */}
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ 
+                opacity: 1, 
+                scale: 1,
+                filter: [
+                  "drop-shadow(0 0 2px rgba(59, 130, 246, 0.15)) brightness(0.7)",
+                  "drop-shadow(0 0 20px rgba(59, 130, 246, 0.45)) brightness(1.15)",
+                  "drop-shadow(0 0 2px rgba(59, 130, 246, 0.15)) brightness(0.7)"
+                ]
+              }}
+              transition={{
+                opacity: { duration: 0.8, ease: "easeOut" },
+                scale: { duration: 0.8, ease: "easeOut" },
+                filter: { duration: 3.5, repeat: Infinity, ease: "easeInOut" }
+              }}
+              className="relative h-20 w-52 md:h-24 md:w-64 select-none mb-2"
+            >
+              <Image
+                src="/assets/bucc-logo.svg"
+                alt="BUCC Logo"
+                fill
+                priority
+                className="object-contain invert hue-rotate-180"
+              />
+            </motion.div>
  
-          {/* Bold, Italic Typewriter Mottos */}
-          <div className="flex flex-col items-center justify-center text-center select-none space-y-2.5 mt-2">
-            <h1 className="font-serif text-3xl md:text-4xl font-black italic tracking-[0.2em] text-white flex items-center justify-center leading-none">
-              {line1}
-              {line1.length < word1.length && (
-                <motion.span
-                  animate={{ opacity: [1, 0, 1] }}
-                  transition={{ repeat: Infinity, duration: 0.8 }}
-                  className="w-1.5 h-7 bg-primary ml-1"
-                />
-              )}
-            </h1>
-            
-            <h1 className="font-serif text-3xl md:text-4xl font-black italic tracking-[0.2em] text-primary flex items-center justify-center leading-none">
-              {line2}
-              {line1.length === word1.length && line2.length < word2.length && (
-                <motion.span
-                  animate={{ opacity: [1, 0, 1] }}
-                  transition={{ repeat: Infinity, duration: 0.8 }}
-                  className="w-1.5 h-7 bg-primary ml-1"
-                />
-              )}
-            </h1>
+            {/* Welcome Motto with slow breathing neon highlighting */}
+            <motion.h1
+              initial={{ opacity: 0, y: 8 }}
+              animate={{ 
+                opacity: 1, 
+                y: 0,
+                color: ["#52525b", "#f4f4f5", "#52525b"],
+                textShadow: [
+                  "0 0 2px rgba(59, 130, 246, 0)",
+                  "0 0 16px rgba(59, 130, 246, 0.35)",
+                  "0 0 2px rgba(59, 130, 246, 0)"
+                ]
+              }}
+              transition={{
+                opacity: { duration: 0.8, delay: 0.15, ease: "easeOut" },
+                y: { duration: 0.8, delay: 0.15, ease: "easeOut" },
+                color: { duration: 3.5, repeat: Infinity, ease: "easeInOut" },
+                textShadow: { duration: 3.5, repeat: Infinity, ease: "easeInOut" }
+              }}
+              className="font-sans text-lg md:text-xl font-light tracking-[0.4em] uppercase text-zinc-500 pl-[0.4em] select-none"
+            >
+              Upgrade Yourself
+            </motion.h1>
           </div>
  
-          {/* Iconic Loading Progress Indicators */}
-          <div className="flex flex-col items-center justify-center mt-10 space-y-3">
-            <div className="w-40 md:w-48 h-[1px] bg-zinc-800 rounded-full overflow-hidden relative">
-              <div 
-                className="bg-primary h-full rounded-full transition-all duration-300"
-                style={{ width: `${progress}%` }}
-              />
-            </div>
-            <div className="font-mono text-[9px] md:text-[10px] tracking-[0.3em] text-zinc-500 select-none animate-pulse">
-              LOADING / {String(progress).padStart(3, "0")}%
-            </div>
+          {/* Bottom Right Progress Number */}
+          <div className="absolute bottom-10 right-10 md:bottom-16 md:right-16 select-none font-mono flex flex-col items-end animate-in fade-in duration-500">
+            <span className="text-[9px] uppercase tracking-[0.3em] text-zinc-600 mb-1">System Load</span>
+            <span className="text-5xl md:text-7xl font-extralight tracking-tighter text-zinc-400">
+              {progress}<span className="text-xl md:text-2xl text-zinc-600 font-extralight ml-1">%</span>
+            </span>
           </div>
         </motion.div>
       )}

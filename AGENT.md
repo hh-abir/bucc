@@ -158,6 +158,8 @@ C:\Users\Abir\Desktop\bucc\
 - **Announcement Gating Restructuring:** Gated backend and frontend announcement posting privilege strictly to active Governing Body (GB) and Executive Body (EB) members, ensuring other staff roles (such as Senior Executives and Executives) or inactive members cannot post or delete announcements.
 - **TypeScript Strict Mode Mappings:** Explicitly typed arrow callback arguments in MongoDB native `.map()` statements to satisfy strict type verification checks during compilation.
 - **Member Registration Page Mobile Design Polish:** Optimized the mobile display of `member-registration/page.tsx` by replacing performance-heavy CSS blur filter boxes (which rasterize blocky/pixelated artifacts on iOS Safari and mobile Chrome) with smooth `radial-gradient` backgrounds. Upgraded radio buttons to premium checkable cards, placed helper icons inside input/select fields with uniform `pl-10` padding, and introduced fluid micro-interactions.
+- **Welcoming Preloader Screen Polish:** Redesigned the entrance preloader overlay (`Preloader.tsx`) to support smooth opacity fade-out exits. Relocated the loading percentage text into a giant counter in the bottom-right corner, and applied a slow ambient drop-shadow glow transition to the BUCC logo and the "Upgrade Yourself" motto.
+- **Above-The-Fold Image Loading Priority:** Marked the persistent navigation header logo `Image` component (`Navbar.tsx`) with the `priority` attribute. This forces eager loading and high fetch priority, resolving the Chromium console intervention warning regarding lazy-loaded images in the initial viewport.
 
 ---
 

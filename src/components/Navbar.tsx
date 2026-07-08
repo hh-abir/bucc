@@ -71,6 +71,7 @@ export function Navbar() {
             alt="BUCC Logo" 
             width={160} 
             height={54} 
+            priority
             className="h-12 w-auto transition-transform group-hover:scale-105 dark:invert dark:hue-rotate-180"
           />
         </Link>
