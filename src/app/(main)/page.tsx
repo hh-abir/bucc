@@ -3,6 +3,7 @@ import dbConnect from "@/lib/dbConnect";
 import Event from "@/model/Event";
 import Project from "@/model/Project";
 import User from "@/model/User";
+import Preloader from "@/components/public/Preloader";
 
 export const revalidate = 3600; // Revalidate page every hour
 
@@ -35,5 +36,10 @@ export default async function Page() {
   const serializedEvents = JSON.parse(JSON.stringify(latestEvents));
   const serializedProjects = JSON.parse(JSON.stringify(featuredProjects));
 
-  return <HomePage initialEvents={serializedEvents} initialProjects={serializedProjects} />;
+  return (
+    <>
+      <Preloader />
+      <HomePage initialEvents={serializedEvents} initialProjects={serializedProjects} />
+    </>
+  );
 }

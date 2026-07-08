@@ -122,6 +122,10 @@ export default function HomePage({ initialEvents = [], initialProjects = [] }: {
   const [useThreeColumnFallback, setUseThreeColumnFallback] = React.useState(true);
 
   React.useEffect(() => {
+    if (isMobile) {
+      setUseThreeColumnFallback(true);
+      return;
+    }
     // Verify WebGL capability in user's browser. If missing, disable Spline and keep static columns.
     try {
       const canvas = document.createElement("canvas");
@@ -132,15 +136,17 @@ export default function HomePage({ initialEvents = [], initialProjects = [] }: {
       if (!support) {
         setIsWebGLSupported(false);
         setUseThreeColumnFallback(true);
+      } else if (isSplineLoaded) {
+        setUseThreeColumnFallback(false);
       }
     } catch (e) {
       setIsWebGLSupported(false);
       setUseThreeColumnFallback(true);
     }
-  }, []);
+  }, [isMobile, isSplineLoaded]);
 
   React.useEffect(() => {
-    if (!isWebGLSupported) return;
+    if (!isWebGLSupported || isMobile) return;
 
     // Safety Timeout: If assets from prod.spline.design fail to load within 10s 
     // (due to slow network or strict adblockers), maintain the static fallback layout.
@@ -152,7 +158,7 @@ export default function HomePage({ initialEvents = [], initialProjects = [] }: {
     }, 10000); // 10 seconds timeout
 
     return () => clearTimeout(timer);
-  }, [isWebGLSupported, isSplineLoaded]);
+  }, [isWebGLSupported, isSplineLoaded, isMobile]);
 
   useEffect(() => {
     if (isCarouselHovered) return;
@@ -467,7 +473,7 @@ export default function HomePage({ initialEvents = [], initialProjects = [] }: {
               - Controls display using CSS toggle states ('hidden pointer-events-none absolute' vs 'lg:col-span-5 block')
                 to avoid unmounting and re-downloading WebGL canvases when state updates.
             */}
-            {isWebGLSupported && (
+            {!isMobile && isWebGLSupported && (
               <div className={useThreeColumnFallback 
                 ? "hidden opacity-0 pointer-events-none w-0 h-0 overflow-hidden absolute" 
                 : "lg:col-span-5 h-[320px] md:h-[400px] lg:h-[500px] w-full relative rounded-2xl overflow-hidden bg-card/10 border border-border/40 backdrop-blur-sm opacity-100 transition-all duration-700 animate-in fade-in zoom-in-95"
@@ -476,7 +482,9 @@ export default function HomePage({ initialEvents = [], initialProjects = [] }: {
                   scene="https://prod.spline.design/97MRBci3ZutLdKaH/scene.splinecode" 
                   onLoad={() => {
                     setIsSplineLoaded(true);
-                    setUseThreeColumnFallback(false);
+                    if (!isMobile) {
+                      setUseThreeColumnFallback(false);
+                    }
                   }}
                   onError={() => {
                     setIsWebGLSupported(false);
