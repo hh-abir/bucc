@@ -208,17 +208,17 @@ export default function MemberRegistration() {
  
   return (
     <div className="min-h-screen bg-background relative flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8 overflow-hidden">
-      {/* Background neon ambient glows (using radial-gradient to prevent GPU blur pixelation on mobile screens) */}
+      {/* Background neon ambient glows (hidden on mobile to prevent color banding/pixelation on Android Chrome) */}
       <div 
-        className="absolute top-1/4 left-1/4 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] pointer-events-none"
+        className="hidden md:block absolute top-1/4 left-1/4 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] pointer-events-none"
         style={{
-          background: "radial-gradient(circle, hsla(var(--primary) / 0.04) 0%, transparent 70%)"
+          background: "radial-gradient(circle, hsla(var(--primary) / 0.04) 0%, hsla(var(--primary) / 0) 70%)"
         }}
       />
       <div 
-        className="absolute bottom-1/4 right-1/4 translate-x-1/2 translate-y-1/2 w-[500px] h-[500px] pointer-events-none"
+        className="hidden md:block absolute bottom-1/4 right-1/4 translate-x-1/2 translate-y-1/2 w-[500px] h-[500px] pointer-events-none"
         style={{
-          background: "radial-gradient(circle, rgba(14, 165, 233, 0.04) 0%, transparent 70%)"
+          background: "radial-gradient(circle, rgba(14, 165, 233, 0.04) 0%, rgba(14, 165, 233, 0) 70%)"
         }}
       />
  
