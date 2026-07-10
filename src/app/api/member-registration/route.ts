@@ -7,19 +7,49 @@ import { isSuperUser } from "@/lib/permissions";
 import { encrypt } from "@/lib/crypto";
 import { NextResponse } from "next/server";
  
+// Background Geolocation Resolver (runs non-blocking to prevent request latency)
+async function logSpammerInfo(ip: string, userAgent: string, blockReason: string, detail: string = "") {
+  try {
+    // Check if loopback or private network IP to avoid making unnecessary external API calls
+    const isLocal = 
+      ip === "127.0.0.1" || 
+      ip === "::1" || 
+      ip.startsWith("192.168.") || 
+      ip.startsWith("10.") || 
+      ip.startsWith("172.") || // Covers 172.16.0.0/12
+      ip === "::ffff:127.0.0.1";
+ 
+    let location = "Local Loopback / Private Network";
+ 
+    if (!isLocal) {
+      const response = await fetch(`http://ip-api.com/json/${ip}`);
+      const data = await response.json();
+      
+      location = data.status === "success"
+        ? `${data.city}, ${data.regionName}, ${data.country} [ISP: ${data.isp || "N/A"}]`
+        : `Unknown Location (${data.message || "IP Geo-Lookup Failed"})`;
+    }
+      
+    console.warn(`[SPAM BLOCKED] Reason: ${blockReason} | IP: ${ip} | Location: ${location} | UA: ${userAgent} ${detail}`);
+  } catch (error) {
+    console.warn(`[SPAM BLOCKED] Reason: ${blockReason} | IP: ${ip} | Location: (Geo-lookup connection error) | UA: ${userAgent} ${detail}`);
+  }
+}
+ 
 // Public submission endpoint
 export async function POST(request: Request) {
   await dbConnect();
  
   try {
-    // Extract Client IP address early
+    // Extract Client IP address
     const ip = request.headers.get("x-forwarded-for")?.split(",")[0].trim() || 
                request.headers.get("x-real-ip") || 
                "127.0.0.1";
  
-    // 1. User-Agent Bot & Automated Script Filtering
     const userAgent = request.headers.get("user-agent") || "";
     const lowerUA = userAgent.toLowerCase();
+    
+    // 1. User-Agent Bot & Automated Script Filtering
     const isBot = 
       lowerUA.includes("python") || 
       lowerUA.includes("requests") || 
@@ -32,7 +62,7 @@ export async function POST(request: Request) {
       lowerUA.includes("selenium");
  
     if (isBot) {
-      console.warn(`[SPAM DETECTED] Bot User-Agent block. IP: ${ip} | UA: ${userAgent}`);
+      logSpammerInfo(ip, userAgent, "Bot User-Agent Block");
       // Tarpit Honeypot: Return a fake success response so the spam script halts without writing to DB
       return NextResponse.json({ message: "Registration request submitted successfully! Awaiting board approval." });
     }
@@ -40,7 +70,7 @@ export async function POST(request: Request) {
     // 2. Custom Front-End Verification Header Check
     const regHeader = request.headers.get("x-bucc-registration");
     if (regHeader !== "PortalToken-2026") {
-      console.warn(`[SPAM DETECTED] Missing custom header. IP: ${ip} | UA: ${userAgent}`);
+      logSpammerInfo(ip, userAgent, "Missing Custom Header Token");
       // Tarpit Honeypot: Return fake success
       return NextResponse.json({ message: "Registration request submitted successfully! Awaiting board approval." });
     }
@@ -63,7 +93,7 @@ export async function POST(request: Request) {
  
     // 3. Honeypot Trap Check (Invisible field filled out by bot scraper)
     if (academicWebsite) {
-      console.warn(`[SPAM DETECTED] Honeypot field filled. IP: ${ip} | Filled Value: "${academicWebsite}"`);
+      logSpammerInfo(ip, userAgent, "Honeypot Trap Triggered", `| Input: "${academicWebsite}"`);
       // Tarpit Honeypot: Return fake success
       return NextResponse.json({ message: "Registration request submitted successfully! Awaiting board approval." });
     }
@@ -77,7 +107,7 @@ export async function POST(request: Request) {
  
     if (rateEntry) {
       if (rateEntry.count >= MAX_REGISTRATIONS) {
-        console.warn(`[RATE LIMIT EXCEEDED] IP: ${ip} reached limit of ${MAX_REGISTRATIONS} attempts.`);
+        logSpammerInfo(ip, userAgent, "IP Rate Limit Exceeded", `| Current count: ${rateEntry.count}`);
         return NextResponse.json(
           { message: "Too many registration attempts from this connection. Please try again in an hour." }, 
           { status: 429 }
