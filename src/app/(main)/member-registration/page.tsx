@@ -46,6 +46,7 @@ export default function MemberRegistration() {
     designation: "",
     joinedBucc: "",
     joinedBracu: "",
+    academicWebsite: "", // Honeypot Field
   });
  
   useEffect(() => {
@@ -163,7 +164,10 @@ export default function MemberRegistration() {
     try {
       const response = await fetch("/api/member-registration", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: { 
+          "Content-Type": "application/json",
+          "X-BUCC-Registration": "PortalToken-2026"
+        },
         body: JSON.stringify(formData),
       });
  
@@ -305,6 +309,20 @@ export default function MemberRegistration() {
         </div>
  
         <form onSubmit={onSubmit} className="space-y-8">
+          {/* Honeypot Spam Trap (Invisible to real users) */}
+          <div className="hidden" aria-hidden="true">
+            <label htmlFor="academicWebsite">Academic Website</label>
+            <input
+              id="academicWebsite"
+              name="academicWebsite"
+              type="text"
+              tabIndex={-1}
+              autoComplete="off"
+              value={formData.academicWebsite}
+              onChange={handleChange}
+            />
+          </div>
+
           {/* Dual-Column Layout on larger screens */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
             

@@ -2,6 +2,7 @@ import { auth } from "@/auth";
 import dbConnect from "@/lib/dbConnect";
 import PendingMember from "@/model/PendingMember";
 import User from "@/model/User";
+import RateLimit from "@/model/RateLimit";
 import { isSuperUser } from "@/lib/permissions";
 import { encrypt } from "@/lib/crypto";
 import { NextResponse } from "next/server";
@@ -11,6 +12,39 @@ export async function POST(request: Request) {
   await dbConnect();
  
   try {
+    // Extract Client IP address early
+    const ip = request.headers.get("x-forwarded-for")?.split(",")[0].trim() || 
+               request.headers.get("x-real-ip") || 
+               "127.0.0.1";
+ 
+    // 1. User-Agent Bot & Automated Script Filtering
+    const userAgent = request.headers.get("user-agent") || "";
+    const lowerUA = userAgent.toLowerCase();
+    const isBot = 
+      lowerUA.includes("python") || 
+      lowerUA.includes("requests") || 
+      lowerUA.includes("urllib") || 
+      lowerUA.includes("curl") || 
+      lowerUA.includes("wget") ||
+      lowerUA.includes("postman") ||
+      lowerUA.includes("http-client") ||
+      lowerUA.includes("playwright") ||
+      lowerUA.includes("selenium");
+ 
+    if (isBot) {
+      console.warn(`[SPAM DETECTED] Bot User-Agent block. IP: ${ip} | UA: ${userAgent}`);
+      // Tarpit Honeypot: Return a fake success response so the spam script halts without writing to DB
+      return NextResponse.json({ message: "Registration request submitted successfully! Awaiting board approval." });
+    }
+ 
+    // 2. Custom Front-End Verification Header Check
+    const regHeader = request.headers.get("x-bucc-registration");
+    if (regHeader !== "PortalToken-2026") {
+      console.warn(`[SPAM DETECTED] Missing custom header. IP: ${ip} | UA: ${userAgent}`);
+      // Tarpit Honeypot: Return fake success
+      return NextResponse.json({ message: "Registration request submitted successfully! Awaiting board approval." });
+    }
+ 
     const body = await request.json();
     const {
       name,
@@ -24,7 +58,42 @@ export async function POST(request: Request) {
       designation,
       joinedBucc,
       joinedBracu,
+      academicWebsite, // Honeypot Field
     } = body;
+ 
+    // 3. Honeypot Trap Check (Invisible field filled out by bot scraper)
+    if (academicWebsite) {
+      console.warn(`[SPAM DETECTED] Honeypot field filled. IP: ${ip} | Filled Value: "${academicWebsite}"`);
+      // Tarpit Honeypot: Return fake success
+      return NextResponse.json({ message: "Registration request submitted successfully! Awaiting board approval." });
+    }
+ 
+    // 4. IP-Based Rate Limiting (Using MongoDB with Auto-Expiry TTL indexes)
+    const MAX_REGISTRATIONS = 3;
+    const WINDOW_TIME = 60 * 60 * 1000; // 1 Hour Rate Window
+ 
+    const rateEntry = await RateLimit.findOne({ ip, endpoint: "member-registration" });
+    const now = new Date();
+ 
+    if (rateEntry) {
+      if (rateEntry.count >= MAX_REGISTRATIONS) {
+        console.warn(`[RATE LIMIT EXCEEDED] IP: ${ip} reached limit of ${MAX_REGISTRATIONS} attempts.`);
+        return NextResponse.json(
+          { message: "Too many registration attempts from this connection. Please try again in an hour." }, 
+          { status: 429 }
+        );
+      }
+      rateEntry.count += 1;
+      await rateEntry.save();
+    } else {
+      const newRate = new RateLimit({
+        ip,
+        endpoint: "member-registration",
+        count: 1,
+        resetAt: new Date(now.getTime() + WINDOW_TIME),
+      });
+      await newRate.save();
+    }
  
     // Basic validations
     if (!name || !email || !password || !studentId || !phoneNumber || !memberStatus || !buccDepartment || !bracuDepartment || !designation) {
