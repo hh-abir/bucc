@@ -3,13 +3,9 @@
 function welcomeMail(name: String, email?: String, password?: String) {
   return `
 Dear ${name},
-Welcome to BUCC. Your account has been created successfully, and your portal is now ready to access. Please use the following credentials to log in and complete your profile.
+Welcome to BUCC. Your account has been created successfully, and your portal is now ready to access.
 
-Your login credentials are:
-Email: ${email}
-Password: ${password}
-
-After logging in, you can change your password to a strong one from Settings or add two-factor authentication. See you soon!
+After logging in complete your profile from Settings and also from Public Profile, Showcase your projects and add two-factor authentication. See you soon!
 
 Note: This is an automated email. Please do not reply to this email.
 

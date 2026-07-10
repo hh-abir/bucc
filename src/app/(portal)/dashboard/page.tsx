@@ -1,6 +1,7 @@
 "use client";
 
 import { useSession } from "next-auth/react";
+import { cn } from "@/lib/utils";
 import { DigitalIdCard } from "@/components/DigitalIdCard";
 import { isGoverningBody, canManageEvents, canManageMembers } from "@/lib/permissions";
 import Link from "next/link";
@@ -16,7 +17,9 @@ import {
   FileText,
   Clock,
   ArrowRight,
-  Pin
+  Pin,
+  CreditCard,
+  Sparkles
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -96,6 +99,7 @@ export default function Dashboard() {
   const queryClient = useQueryClient();
   const { data: session, status: sessionStatus } = useSession();
   const [isPostOpen, setIsPostOpen] = useState(false);
+  const [cardType, setCardType] = useState<"digital" | "classic">("classic");
   const [newNotice, setNewNotice] = useState({ title: "", content: "" });
 
   // Banner Management State
@@ -191,8 +195,43 @@ export default function Dashboard() {
         {/* Identity & Admin Quick Links */}
         <div className="lg:col-span-5 space-y-10">
           <section className="space-y-4">
-            <h2 className="font-serif text-2xl tracking-tight">Your Identity</h2>
-            <DigitalIdCard user={user} />
+            <div className="flex items-center justify-between">
+              <h2 className="font-serif text-2xl tracking-tight">Your Identity</h2>
+              
+              {/* Card Switch Toggle */}
+              <div className="flex bg-muted/60 p-0.5 rounded-lg border border-border/50 max-w-[80px] shrink-0">
+                <button
+                  type="button"
+                  onClick={() => setCardType("classic")}
+                  className={cn(
+                    "p-1.5 rounded-md transition-all duration-200",
+                    cardType === "classic" 
+                      ? "bg-background text-foreground shadow-sm" 
+                      : "text-muted-foreground hover:text-foreground"
+                  )}
+                  title="Classic Flat Card"
+                >
+                  <CreditCard className="h-3.5 w-3.5" />
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setCardType("digital")}
+                  className={cn(
+                    "p-1.5 rounded-md transition-all duration-200",
+                    cardType === "digital" 
+                      ? "bg-background text-foreground shadow-sm" 
+                      : "text-muted-foreground hover:text-foreground"
+                  )}
+                  title="Digital 3D Card"
+                >
+                  <Sparkles className="h-3.5 w-3.5" />
+                </button>
+              </div>
+            </div>
+            
+            <div className="flex justify-center lg:justify-start pt-2">
+              <DigitalIdCard user={user} cardType={cardType} />
+            </div>
           </section>
 
           {(canPost || canManageEvents(user) || canManageMembers(user)) && (

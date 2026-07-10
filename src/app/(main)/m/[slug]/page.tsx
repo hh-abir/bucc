@@ -33,11 +33,51 @@ interface PageProps {
   params: Promise<{ slug: string }>;
 }
 
+const decodeObfuscatedId = (obfuscated: string): string => {
+  if (!obfuscated || obfuscated.length !== 24) return "";
+  const hex = "0123456789abcdef";
+  const reversed = obfuscated.toLowerCase().split("").reverse().join("");
+  let original = "";
+  for (let i = 0; i < reversed.length; i++) {
+    const char = reversed[i];
+    const index = hex.indexOf(char);
+    if (index !== -1) {
+      original += hex[(index + 11) % 16];
+    } else {
+      original += char;
+    }
+  }
+  return original;
+};
+
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const { slug } = await params;
   try {
     await dbConnect();
-    const user = await User.findOne({ profileSlug: slug.toLowerCase(), isPublicProfile: true }).lean() as any;
+    let queryCondition: any = {
+      $or: [
+        { profileSlug: slug.toLowerCase(), isPublicProfile: true }
+      ]
+    };
+    if (slug.length === 24) {
+      const decodedId = decodeObfuscatedId(slug);
+      if (/^[0-9a-fA-F]{24}$/.test(decodedId)) {
+        queryCondition.$or.push({ _id: decodedId });
+      }
+    }
+    if (slug.toLowerCase().startsWith("bucc-")) {
+      const parts = slug.split("-");
+      if (parts.length >= 3) {
+        const year = parts[1];
+        const suffix = parts[2];
+        const shortYear = year.slice(-2);
+        queryCondition.$or.push(
+          { studentId: { $regex: new RegExp(`^${shortYear}.*${suffix}$`) } },
+          { studentId: { $regex: new RegExp(`^${year}.*${suffix}$`) } }
+        );
+      }
+    }
+    const user = await User.findOne(queryCondition).lean() as any;
     if (!user) {
       return {
         title: "Profile Not Found | BUCC",
@@ -72,11 +112,31 @@ export default async function MemberProfilePage({ params }: PageProps) {
 
   await dbConnect();
 
+  let queryCondition: any = {
+    $or: [
+      { profileSlug: slug.toLowerCase(), isPublicProfile: true }
+    ]
+  };
+  if (slug.length === 24) {
+    const decodedId = decodeObfuscatedId(slug);
+    if (/^[0-9a-fA-F]{24}$/.test(decodedId)) {
+      queryCondition.$or.push({ _id: decodedId });
+    }
+  }
+  if (slug.toLowerCase().startsWith("bucc-")) {
+    const parts = slug.split("-");
+    if (parts.length >= 3) {
+      const year = parts[1];
+      const suffix = parts[2];
+      const shortYear = year.slice(-2);
+      queryCondition.$or.push(
+        { studentId: { $regex: new RegExp(`^${shortYear}.*${suffix}$`) } },
+        { studentId: { $regex: new RegExp(`^${year}.*${suffix}$`) } }
+      );
+    }
+  }
   // 1. Fetch User details
-  const user = await User.findOne({ 
-    profileSlug: slug.toLowerCase(), 
-    isPublicProfile: true 
-  }).lean() as any;
+  const user = await User.findOne(queryCondition).lean() as any;
 
   if (!user) {
     return notFound();
